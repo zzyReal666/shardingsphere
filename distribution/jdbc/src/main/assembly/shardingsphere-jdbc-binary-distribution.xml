@@ -48,7 +48,7 @@
             <unpack>false</unpack>
             <outputDirectory>/lib</outputDirectory>
             <includes>
-                <include>org.apache.shardingsphere:*</include>
+                <include>*</include>
             </includes>
         </dependencySet>
     </dependencySets>
