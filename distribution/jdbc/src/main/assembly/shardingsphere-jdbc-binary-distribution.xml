@@ -17,12 +17,13 @@
 
 <assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
-    <id>shardingsphere-jdbc-bin</id>
+    <id>shardingsphere-jdbc</id>
     <formats>
-        <format>tar.gz</format>
+        <format>jar</format>
+<!--        <format>tar.gz</format>-->
     </formats>
-    <includeBaseDirectory>true</includeBaseDirectory>
-    <baseDirectory>${project.build.finalName}-shardingsphere-jdbc-bin</baseDirectory>
+    <includeBaseDirectory>false</includeBaseDirectory>
+<!--    <baseDirectory>${project.build.finalName}-shardingsphere-jdbc-bin</baseDirectory>-->
     
     <fileSets>
         <fileSet>
@@ -44,9 +45,9 @@
     
     <dependencySets>
         <dependencySet>
-            <useProjectArtifact>true</useProjectArtifact>
+            <useProjectArtifact>false</useProjectArtifact>
             <unpack>false</unpack>
-            <outputDirectory>/lib</outputDirectory>
+            <outputDirectory>/</outputDirectory>
             <includes>
                 <include>*</include>
             </includes>
