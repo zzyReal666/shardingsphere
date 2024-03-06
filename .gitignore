@@ -55,3 +55,8 @@ gen/
 public/
 .hugo_build.lock
 *.html-e
+
+
+# zzy add
+.idea
+.mvn
