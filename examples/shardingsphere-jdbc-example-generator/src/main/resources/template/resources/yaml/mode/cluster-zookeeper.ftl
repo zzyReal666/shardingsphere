@@ -21,4 +21,4 @@ mode:
     type: ZooKeeper
     props:
       namespace: generator_demo
-      server-lists: localhost:2181
+      server-lists: 101.42.19.44:12181

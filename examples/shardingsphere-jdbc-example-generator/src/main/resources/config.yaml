@@ -20,35 +20,36 @@
 
 # supported: cluster-zookeeper,cluster-etcd,standalone
 modes: 
-  - standalone
+#  - standalone
+  - cluster-zookeeper
 
 # supported: local, xa-atomikos, xa-narayana, base-seata
 transactions: 
   - local
-  - xa-atomikos
-  - xa-narayana
-  - base-seata
+#  - xa-atomikos
+#  - xa-narayana
+#  - base-seata
 
 # supported: sharding,readwrite-splitting,encrypt,shadow,mask
 features: 
-  - sharding
-  - readwrite-splitting
+#  - sharding
+#  - readwrite-splitting
   - encrypt
-  - shadow
-  - mask
+#  - shadow
+#  - mask
 
 # supported：jdbc,spring-boot-starter-jdbc,spring-boot-starter-jpa,spring-boot-starter-mybatis,spring-namespace-jdbc,spring-namespace-jpa,spring-namespace-mybatis
 frameworks:
-  - jdbc
+#  - jdbc
   - spring-boot-starter-jdbc
-  - spring-boot-starter-jpa
-  - spring-boot-starter-mybatis
-  - spring-namespace-jdbc
-  - spring-namespace-jpa
-  - spring-namespace-mybatis
+#  - spring-boot-starter-jpa
+#  - spring-boot-starter-mybatis
+#  - spring-namespace-jdbc
+#  - spring-namespace-jpa
+#  - spring-namespace-mybatis
 
 props:
-  host: localhost
-  port: 3306
+  host: 101.42.19.44
+  port: 13306
   username: root
-  password: 123456
+  password: 123123
