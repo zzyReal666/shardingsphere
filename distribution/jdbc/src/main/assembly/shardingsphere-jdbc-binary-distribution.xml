@@ -24,24 +24,24 @@
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
 <!--    <baseDirectory>${project.build.finalName}-shardingsphere-jdbc-bin</baseDirectory>-->
-    
-    <fileSets>
-        <fileSet>
-            <directory>../../</directory>
-            <includes>
-                <include>LICENSE</include>
-                <include>NOTICE</include>
-                <include>DISCLAIMER</include>
-            </includes>
-        </fileSet>
-        <fileSet>
-            <directory>src/main/release-docs</directory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <outputDirectory>/</outputDirectory>
-        </fileSet>
-    </fileSets>
+<!--    -->
+<!--    <fileSets>-->
+<!--        <fileSet>-->
+<!--            <directory>../../</directory>-->
+<!--            <includes>-->
+<!--                <include>LICENSE</include>-->
+<!--                <include>NOTICE</include>-->
+<!--                <include>DISCLAIMER</include>-->
+<!--            </includes>-->
+<!--        </fileSet>-->
+<!--        <fileSet>-->
+<!--            <directory>src/main/release-docs</directory>-->
+<!--            <includes>-->
+<!--                <include>**/*</include>-->
+<!--            </includes>-->
+<!--            <outputDirectory>/</outputDirectory>-->
+<!--        </fileSet>-->
+<!--    </fileSets>-->
     
     <dependencySets>
         <dependencySet>

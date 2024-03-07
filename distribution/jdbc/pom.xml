@@ -102,13 +102,16 @@
                             </execution>
                         </executions>
                     </plugin>
+
                     <plugin>
                         <groupId>net.nicoulaj.maven.plugins</groupId>
                         <artifactId>checksum-maven-plugin</artifactId>
                     </plugin>
+
                     <plugin>
                         <artifactId>maven-source-plugin</artifactId>
                     </plugin>
+
                     <plugin>
                         <groupId>io.smallrye</groupId>
                         <artifactId>jandex-maven-plugin</artifactId>
