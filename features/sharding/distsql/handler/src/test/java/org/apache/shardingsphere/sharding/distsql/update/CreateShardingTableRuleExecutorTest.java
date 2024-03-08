@@ -21,12 +21,13 @@ import lombok.SneakyThrows;
 import org.apache.shardingsphere.distsql.segment.AlgorithmSegment;
 import org.apache.shardingsphere.distsql.statement.DistSQLStatement;
 import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
-import org.apache.shardingsphere.infra.config.rule.RuleConfiguration;
 import org.apache.shardingsphere.infra.exception.core.external.sql.type.kernel.category.DistSQLException;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.database.resource.ResourceMetaData;
 import org.apache.shardingsphere.infra.metadata.database.rule.RuleMetaData;
-import org.apache.shardingsphere.infra.rule.identifier.type.DataSourceContainedRule;
+import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
+import org.apache.shardingsphere.infra.rule.identifier.type.RuleIdentifiers;
+import org.apache.shardingsphere.infra.rule.identifier.type.datasource.DataSourceMapperRule;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingAutoTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
@@ -81,7 +82,11 @@ class CreateShardingTableRuleExecutorTest {
         when(database.getName()).thenReturn("schema");
         ResourceMetaData resourceMetaData = new ResourceMetaData(createDataSource());
         when(database.getResourceMetaData()).thenReturn(resourceMetaData);
-        when(database.getRuleMetaData()).thenReturn(new RuleMetaData(Collections.singleton(new MockDataSourceContainedRule())));
+        DataSourceMapperRule dataSourceMapperRule = mock(DataSourceMapperRule.class);
+        when(dataSourceMapperRule.getDataSourceMapper()).thenReturn(Collections.singletonMap("logic_ds", null));
+        ShardingSphereRule rule = mock(ShardingSphereRule.class);
+        when(rule.getRuleIdentifiers()).thenReturn(new RuleIdentifiers(dataSourceMapperRule));
+        when(database.getRuleMetaData()).thenReturn(new RuleMetaData(Collections.singleton(rule)));
         executor.setDatabase(database);
     }
     
@@ -292,18 +297,5 @@ class CreateShardingTableRuleExecutorTest {
         ParseASTNode parseASTNode = (ParseASTNode) SQLParserFactory.newInstance(sql, facade.getLexerClass(), facade.getParserClass()).parse();
         SQLVisitor visitor = facade.getVisitorClass().getDeclaredConstructor().newInstance();
         return (DistSQLStatement) visitor.visit(parseASTNode.getRootNode());
-    }
-    
-    private static class MockDataSourceContainedRule implements DataSourceContainedRule {
-        
-        @Override
-        public RuleConfiguration getConfiguration() {
-            return mock(RuleConfiguration.class);
-        }
-        
-        @Override
-        public Map<String, Collection<String>> getDataSourceMapper() {
-            return Collections.singletonMap("logic_ds", null);
-        }
     }
 }

@@ -20,7 +20,7 @@ package org.apache.shardingsphere.data.pipeline.core.metadata.loader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.data.pipeline.core.datasource.PipelineDataSourceWrapper;
-import org.apache.shardingsphere.data.pipeline.core.metadata.CaseInsensitiveIdentifier;
+import org.apache.shardingsphere.infra.metadata.caseinsensitive.CaseInsensitiveIdentifier;
 import org.apache.shardingsphere.data.pipeline.core.metadata.model.PipelineColumnMetaData;
 import org.apache.shardingsphere.data.pipeline.core.metadata.model.PipelineIndexMetaData;
 import org.apache.shardingsphere.data.pipeline.core.metadata.model.PipelineTableMetaData;
@@ -112,7 +112,8 @@ public final class StandardPipelineTableMetaDataLoader implements PipelineTableM
             }
             Collection<PipelineIndexMetaData> uniqueIndexMetaData = uniqueKeys.entrySet().stream()
                     .map(entry -> new PipelineIndexMetaData(entry.getKey(), entry.getValue().stream().map(columnMetaDataMap::get).collect(Collectors.toList()))).collect(Collectors.toList());
-            result.put(new CaseInsensitiveIdentifier(each), new PipelineTableMetaData(each, columnMetaDataMap, uniqueIndexMetaData));
+            result.put(new CaseInsensitiveIdentifier(each), new PipelineTableMetaData(each,
+                    columnMetaDataMap.entrySet().stream().collect(Collectors.toMap(entry -> new CaseInsensitiveIdentifier(entry.getKey()), Entry::getValue)), uniqueIndexMetaData));
         }
         return result;
     }

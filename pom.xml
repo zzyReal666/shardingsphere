@@ -83,19 +83,16 @@
         <json-smart.version>2.4.10</json-smart.version>
         <accessors-smart.version>2.4.9</accessors-smart.version>
         <asm.version>9.3</asm.version>
-        <groovy.version>4.0.10</groovy.version>
+        <groovy.version>4.0.19</groovy.version>
         <freemarker.version>2.3.31</freemarker.version>
         <bytebuddy.version>1.14.8</bytebuddy.version>
         
         <jakarta.jakartaee-bom.version>8.0.0</jakarta.jakartaee-bom.version>
         <glassfish-jaxb.version>2.3.9</glassfish-jaxb.version>
         
-        <calcite.version>1.35.0</calcite.version>
-        <immutables.version>2.9.3</immutables.version>
-        
         <atomikos.version>6.0.0</atomikos.version>
-        <narayana.version>5.12.4.Final</narayana.version>
-        <jboss-transaction-spi.version>7.6.0.Final</jboss-transaction-spi.version>
+        <narayana.version>5.12.7.Final</narayana.version>
+        <jboss-transaction-spi.version>7.6.1.Final</jboss-transaction-spi.version>
         <jboss-logging.version>3.2.1.Final</jboss-logging.version>
         <seata.version>2.0.0</seata.version>
         
@@ -107,11 +104,9 @@
         <audience-annotations.version>0.12.0</audience-annotations.version>
         <jetcd.version>0.7.7</jetcd.version>
         <vertx.version>4.5.1</vertx.version>
-        <consul.api.version>1.4.5</consul.api.version>
         
         <grpc.version>1.58.0</grpc.version>
         <protobuf.version>3.21.12</protobuf.version>
-        <httpclient.version>4.5.14</httpclient.version>
         <okhttp.version>4.12.0</okhttp.version>
         
         <elasticjob.version>3.0.4</elasticjob.version>
@@ -122,7 +117,7 @@
         
         <lombok.version>1.18.30</lombok.version>
         
-        <postgresql.version>42.4.3</postgresql.version>
+        <postgresql.version>42.7.2</postgresql.version>
         <mysql-connector-java.version>8.0.31</mysql-connector-java.version>
         <mssql.version>6.1.7.jre8-preview</mssql.version>
         <hbase.client.version>1.7.1</hbase.client.version>
@@ -131,8 +126,6 @@
         <mariadb-java-client.version>2.4.2</mariadb-java-client.version>
         
         <hikari-cp.version>4.0.3</hikari-cp.version>
-        
-        <jooq.version>3.14.15</jooq.version>
         
         <prometheus-simpleclient.version>0.11.0</prometheus-simpleclient.version>
         <prometheus-jmx.version>0.16.1</prometheus-jmx.version>
@@ -311,20 +304,9 @@
             </dependency>
             
             <dependency>
-                <groupId>org.apache.calcite</groupId>
-                <artifactId>calcite-core</artifactId>
-                <version>${calcite.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-math3</artifactId>
                 <version>${commons-math3.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.immutables</groupId>
-                <artifactId>value</artifactId>
-                <version>${immutables.version}</version>
-                <scope>provided</scope>
             </dependency>
             
             <dependency>

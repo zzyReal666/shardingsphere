@@ -30,11 +30,14 @@ import org.apache.shardingsphere.infra.exception.core.external.sql.type.generic.
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.database.resource.ResourceMetaData;
 import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereSchema;
-import org.apache.shardingsphere.infra.rule.identifier.type.DataSourceContainedRule;
+import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
+import org.apache.shardingsphere.infra.rule.identifier.type.RuleIdentifiers;
+import org.apache.shardingsphere.infra.rule.identifier.type.datasource.DataSourceMapperRule;
 import org.apache.shardingsphere.infra.spi.exception.ServiceProviderNotFoundException;
 import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
+import org.apache.shardingsphere.proxy.backend.exception.MissingDatabaseNameException;
 import org.apache.shardingsphere.proxy.backend.util.YamlDatabaseConfigurationImportExecutor;
 import org.apache.shardingsphere.test.fixture.jdbc.MockedDriver;
 import org.apache.shardingsphere.test.mock.AutoMockExtension;
@@ -48,6 +51,7 @@ import org.mockito.quality.Strictness;
 
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -101,7 +105,7 @@ class ImportDatabaseConfigurationExecutorTest {
     
     @Test
     void assertImportEmptyDatabaseName() {
-        assertThrows(UnsupportedSQLOperationException.class, () -> assertExecute("sharding_db", "/conf/import/database-empty-database-name.yaml"));
+        assertThrows(MissingDatabaseNameException.class, () -> assertExecute("sharding_db", "/conf/import/database-empty-database-name.yaml"));
     }
     
     @Test
@@ -142,8 +146,9 @@ class ImportDatabaseConfigurationExecutorTest {
         when(database.getProtocolType()).thenReturn(TypedSPILoader.getService(DatabaseType.class, "FIXTURE"));
         ShardingSphereSchema schema = mock(ShardingSphereSchema.class);
         when(database.getSchema(DefaultDatabase.LOGIC_NAME)).thenReturn(schema);
-        DataSourceContainedRule dataSourceContainedRule = mock(DataSourceContainedRule.class);
-        when(database.getRuleMetaData().findRules(DataSourceContainedRule.class)).thenReturn(Collections.singleton(dataSourceContainedRule));
+        ShardingSphereRule rule = mock(ShardingSphereRule.class);
+        when(rule.getRuleIdentifiers()).thenReturn(new RuleIdentifiers(mock(DataSourceMapperRule.class)));
+        when(database.getRuleMetaData().getRules()).thenReturn(new LinkedList<>(Collections.singleton(rule)));
         when(result.getMetaDataContexts().getMetaData().getDatabases()).thenReturn(Collections.singletonMap(databaseName, database));
         when(result.getMetaDataContexts().getMetaData().getDatabase(databaseName)).thenReturn(database);
         when(result.getMetaDataContexts().getMetaData().getProps()).thenReturn(new ConfigurationProperties(createProperties()));

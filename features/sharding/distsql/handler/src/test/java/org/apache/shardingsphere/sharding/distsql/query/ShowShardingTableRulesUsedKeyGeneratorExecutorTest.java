@@ -17,8 +17,11 @@
 
 package org.apache.shardingsphere.sharding.distsql.query;
 
+import org.apache.shardingsphere.distsql.handler.engine.DistSQLConnectionContext;
+import org.apache.shardingsphere.distsql.handler.engine.query.DistSQLQueryExecuteEngine;
 import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
 import org.apache.shardingsphere.infra.merge.result.impl.local.LocalDataQueryResultRow;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingAutoTableRuleConfiguration;
@@ -26,13 +29,13 @@ import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfi
 import org.apache.shardingsphere.sharding.api.config.strategy.keygen.KeyGenerateStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.NoneShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.StandardShardingStrategyConfiguration;
-import org.apache.shardingsphere.sharding.distsql.handler.query.ShowShardingTableRulesUsedKeyGeneratorExecutor;
 import org.apache.shardingsphere.sharding.distsql.statement.ShowShardingTableRulesUsedKeyGeneratorStatement;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
 import org.apache.shardingsphere.test.util.PropertiesBuilder;
 import org.apache.shardingsphere.test.util.PropertiesBuilder.Property;
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
@@ -40,20 +43,34 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ShowShardingTableRulesUsedKeyGeneratorExecutorTest {
     
-    @Test
-    void assertGetRowData() {
+    private DistSQLQueryExecuteEngine engine;
+    
+    DistSQLQueryExecuteEngine setUp(final ShowShardingTableRulesUsedKeyGeneratorStatement statement, final String keyGeneratorName) {
+        when(statement.getKeyGeneratorName()).thenReturn(Optional.of(keyGeneratorName));
+        return new DistSQLQueryExecuteEngine(statement, "foo_db", mockContextManager(), mock(DistSQLConnectionContext.class));
+    }
+    
+    private ContextManager mockContextManager() {
+        ContextManager result = mock(ContextManager.class, RETURNS_DEEP_STUBS);
+        ShardingSphereDatabase database = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
+        when(result.getDatabase("foo_db")).thenReturn(database);
         ShardingRule rule = mock(ShardingRule.class);
         when(rule.getConfiguration()).thenReturn(createRuleConfiguration());
-        ShowShardingTableRulesUsedKeyGeneratorExecutor executor = new ShowShardingTableRulesUsedKeyGeneratorExecutor();
-        executor.setRule(rule);
-        ShowShardingTableRulesUsedKeyGeneratorStatement statement = mock(ShowShardingTableRulesUsedKeyGeneratorStatement.class);
-        when(statement.getKeyGeneratorName()).thenReturn(Optional.of("snowflake"));
-        Collection<LocalDataQueryResultRow> actual = executor.getRows(statement, mock(ContextManager.class));
+        when(database.getRuleMetaData().findSingleRule(ShardingRule.class)).thenReturn(Optional.of(rule));
+        return result;
+    }
+    
+    @Test
+    void assertGetRowData() throws SQLException {
+        engine = setUp(mock(ShowShardingTableRulesUsedKeyGeneratorStatement.class), "snowflake");
+        engine.executeQuery();
+        Collection<LocalDataQueryResultRow> actual = engine.getRows();
         assertThat(actual.size(), is(2));
         Iterator<LocalDataQueryResultRow> iterator = actual.iterator();
         LocalDataQueryResultRow row = iterator.next();

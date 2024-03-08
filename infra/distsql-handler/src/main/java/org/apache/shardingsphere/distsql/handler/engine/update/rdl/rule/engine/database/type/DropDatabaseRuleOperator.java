@@ -20,14 +20,15 @@ package org.apache.shardingsphere.distsql.handler.engine.update.rdl.rule.engine.
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.distsql.handler.engine.update.rdl.rule.engine.database.DatabaseRuleOperator;
 import org.apache.shardingsphere.distsql.handler.engine.update.rdl.rule.spi.database.DatabaseRuleDropExecutor;
-import org.apache.shardingsphere.distsql.statement.rdl.rule.RuleDefinitionStatement;
 import org.apache.shardingsphere.distsql.statement.rdl.rule.aware.StaticDataSourceContainedRuleAwareStatement;
+import org.apache.shardingsphere.distsql.statement.rdl.rule.database.DatabaseRuleDefinitionStatement;
 import org.apache.shardingsphere.infra.config.rule.RuleConfiguration;
 import org.apache.shardingsphere.infra.config.rule.scope.DatabaseRuleConfiguration;
 import org.apache.shardingsphere.infra.instance.mode.ModeContextManager;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.version.MetaDataVersion;
-import org.apache.shardingsphere.infra.rule.identifier.type.StaticDataSourceContainedRule;
+import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
+import org.apache.shardingsphere.infra.rule.identifier.type.datasource.StaticDataSourceRule;
 import org.apache.shardingsphere.infra.yaml.config.swapper.rule.NewYamlRuleConfigurationSwapperEngine;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 
@@ -47,15 +48,17 @@ public final class DropDatabaseRuleOperator implements DatabaseRuleOperator {
     
     @Override
     @SuppressWarnings("unchecked")
-    public Collection<MetaDataVersion> operate(final RuleDefinitionStatement sqlStatement, final ShardingSphereDatabase database, final RuleConfiguration currentRuleConfig) {
+    public Collection<MetaDataVersion> operate(final DatabaseRuleDefinitionStatement sqlStatement, final ShardingSphereDatabase database, final RuleConfiguration currentRuleConfig) {
         if (!executor.hasAnyOneToBeDropped(sqlStatement)) {
             return Collections.emptyList();
         }
         ModeContextManager modeContextManager = contextManager.getInstanceContext().getModeContextManager();
         RuleConfiguration toBeDroppedRuleConfig = executor.buildToBeDroppedRuleConfiguration(sqlStatement);
         if (sqlStatement instanceof StaticDataSourceContainedRuleAwareStatement) {
-            database.getRuleMetaData().findSingleRule(StaticDataSourceContainedRule.class)
-                    .ifPresent(optional -> ((StaticDataSourceContainedRuleAwareStatement) sqlStatement).getNames().forEach(optional::cleanStorageNodeDataSource));
+            for (ShardingSphereRule each : database.getRuleMetaData().getRules()) {
+                each.getRuleIdentifiers().findIdentifier(StaticDataSourceRule.class)
+                        .ifPresent(optional -> ((StaticDataSourceContainedRuleAwareStatement) sqlStatement).getNames().forEach(optional::cleanStorageNodeDataSource));
+            }
             // TODO refactor to new metadata refresh way
         }
         modeContextManager.removeRuleConfigurationItem(database.getName(), toBeDroppedRuleConfig);

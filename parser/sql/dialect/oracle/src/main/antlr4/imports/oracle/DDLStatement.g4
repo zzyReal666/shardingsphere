@@ -142,7 +142,7 @@ dropTrigger
     ;
  
 dropIndex
-    : DROP INDEX indexName ONLINE? FORCE? invalidationSpecification?
+    : DROP INDEX indexName ONLINE? FORCE? invalidationSpecification? (ON tableName)?
     ;
 
 dropView
@@ -242,7 +242,7 @@ oidIndexClause
     ;
 
 createRelationalTableClause
-    : (LP_ relationalProperties RP_)? immutableTableClauses? blockchainTableClauses? collationClause? commitClause? physicalProperties? tableProperties?
+    : (LP_ relationalProperties RP_)? immutableTableClauses? blockchainTableClauses? collationClause? commitClause? parallelClause? physicalProperties? tableProperties?
     ;
 
 createParentClause
@@ -639,6 +639,11 @@ columnProperties
 
 columnProperty
     : objectTypeColProperties
+    | xmlTypeColProperties
+    ;
+
+xmlTypeColProperties
+    : XMLTYPE COLUMN? columnName xmlTypeStorageClause?
     ;
 
 objectTypeColProperties
@@ -699,7 +704,7 @@ constraintClauses
     ;
 
 addConstraintSpecification
-    : ADD (LP_? outOfLineConstraint (COMMA_ outOfLineConstraint)* RP_? | outOfLineRefConstraint)
+    : ADD (LP_ outOfLineConstraint (COMMA_ outOfLineConstraint)* RP_ | outOfLineConstraint* | outOfLineRefConstraint)
     ;
 
 modifyConstraintClause
@@ -939,18 +944,11 @@ storageClause
     )+ RP_
     ;
 
-sizeClause
-    : INTEGER_ capacityUnit?
-    ;
-
-maxsizeClause
-    : MAXSIZE (UNLIMITED | sizeClause)
-    ;
-
 tableCompression
     : COMPRESS
     | ROW STORE COMPRESS (BASIC | ADVANCED)?
     | COLUMN STORE COMPRESS (FOR (QUERY | ARCHIVE) (LOW | HIGH)?)? (NO? ROW LEVEL LOCKING)?
+    | COMPRESS FOR OLTP
     | NOCOMPRESS
     ;
 
@@ -1057,7 +1055,7 @@ clusterRelatedClause
 
 tableProperties
     : columnProperties? readOnlyClause? indexingClause? tablePartitioningClauses? attributeClusteringClause? (CACHE | NOCACHE)? parallelClause?
-    ( RESULT_CACHE (MODE (DEFAULT | FORCE)))? (ROWDEPENDENCIES | NOROWDEPENDENCIES)? enableDisableClause* rowMovementClause? logicalReplicationClause? flashbackArchiveClause?
+    ( RESULT_CACHE (LP_ MODE (DEFAULT | FORCE) RP_))? (ROWDEPENDENCIES | NOROWDEPENDENCIES)? enableDisableClause* rowMovementClause? logicalReplicationClause? flashbackArchiveClause?
     ( ROW ARCHIVAL)? (AS selectSubquery | FOR EXCHANGE WITH TABLE tableName)?
     ;
 
@@ -2826,8 +2824,8 @@ createPFile
     ;
 
 createControlFile
-    : CREATE CONTROLFILE REUSE? SET? DATABASE databaseName logfileForControlClause? resetLogsOrNot
-    ( MAXLOGFILES INTEGER_
+    : CREATE CONTROLFILE REUSE? SET? DATABASE databaseName (logfileForControlClause | RESETLOGS | NORESETLOGS | DATAFILE fileSpecifications
+    |( MAXLOGFILES INTEGER_
     | MAXLOGMEMBERS INTEGER_
     | MAXLOGHISTORY INTEGER_
     | MAXDATAFILES INTEGER_
@@ -2835,17 +2833,16 @@ createControlFile
     | ARCHIVELOG
     | NOARCHIVELOG
     | FORCE LOGGING
-    | SET STANDBY NOLOGGING FOR (DATA AVAILABILITY | LOAD PERFORMANCE)
-    )*
+    | SET STANDBY NOLOGGING FOR (DATA AVAILABILITY | LOAD PERFORMANCE)))+
     characterSetClause?
     ;
 
 resetLogsOrNot
-   :  ( RESETLOGS | NORESETLOGS) (DATAFILE fileSpecifications)?
+   :  ( RESETLOGS | NORESETLOGS)? (DATAFILE fileSpecifications)?
    ;
 
 logfileForControlClause
-    : LOGFILE (GROUP INTEGER_)? fileSpecification (COMMA_ (GROUP INTEGER_)? fileSpecification)+
+    : LOGFILE (GROUP INTEGER_)? fileSpecification (COMMA_ (GROUP INTEGER_)? fileSpecification)*
     ;
 
 characterSetClause
@@ -3002,7 +2999,7 @@ resolveClause
 alterAuditPolicy
     : ALTER AUDIT POLICY policyName
       ((ADD | DROP) subAuditClause)?
-      (CONDITION (DROP | SQ_ condition SQ_ EVALUATE PER (STATEMENT | SESSION | INSTANCE)))?
+      (CONDITION (DROP | STRING_ EVALUATE PER (STATEMENT | SESSION | INSTANCE)))?
     ;
 
 subAuditClause
@@ -3330,11 +3327,11 @@ diskOfflineClause
     ;
 
 timeoutClause
-    : DROP AFTER INTEGER_ TIME_UNIT
+    : DROP AFTER INTEGER_ timeUnit
     ;
 
 checkDiskgroupClause
-    : CHECK (REPAIR | NOREPAIR)?
+    : CHECK ALL? (REPAIR | NOREPAIR)?
     ;
 
 diskgroupTemplateClauses
@@ -3562,7 +3559,7 @@ buildClause
     ;
 
 createMaterializedViewLog
-    : CREATE MATERIALIZED VIEW LOG ON tableName materializedViewLogAttribute? parallelClause? ( WITH ( COMMA_? ( OBJECT ID | PRIMARY KEY | ROWID | SEQUENCE | COMMIT SCN ) )* (LP_ ( COMMA_? identifier )+ RP_ newViewValuesClause? )? mvLogPurgeClause? )*
+    : CREATE MATERIALIZED VIEW LOG ON tableName materializedViewLogAttribute? parallelClause? ( WITH ( ( COMMA_? ( OBJECT ID | PRIMARY KEY | ROWID | SEQUENCE | COMMIT SCN ) ) | (LP_ columnName ( COMMA_ columnName )* RP_ ) )* )? newViewValuesClause? mvLogPurgeClause? createMvRefresh? ((FOR UPDATE)? ( (DISABLE | ENABLE) QUERY REWRITE )? AS selectSubquery)?
     ;
 
 materializedViewLogAttribute
@@ -3648,9 +3645,7 @@ scopedTableRefConstraint
     ;
 
 alterMvRefresh
-    : REFRESH (FAST
-    | COMPLETE
-    | FORCE
+    : REFRESH ( ((FAST | COMPLETE | FORCE) (START WITH dateValue)? (NEXT dateValue)?)
     | ON DEMAND
     | ON COMMIT
     | START WITH dateValue
@@ -3725,14 +3720,15 @@ newValuesClause
     ;
 
 mvLogPurgeClause
-    : PURGE IMMEDIATE (SYNCHRONOUS | ASYNCHRONOUS)?
+    : PURGE (IMMEDIATE (SYNCHRONOUS | ASYNCHRONOUS)?
     | START WITH dateValue nextOrRepeatClause?
-    | (START WITH dateValue)? nextOrRepeatClause
+    | (START WITH dateValue)? nextOrRepeatClause)
     ;
 
 nextOrRepeatClause
-    : NEXT dateValue | REPEAT INTERVAL intervalExpression
+    : NEXT dateValue | REPEAT intervalLiterals
     ;
+
 
 forRefreshClause
     : FOR ((SYNCHRONOUS REFRESH USING stagingLogName) | (FAST REFRESH))
@@ -4070,7 +4066,7 @@ createTablespace
 permanentTablespaceClause
     : TABLESPACE tablespaceName (
     (MINIMUM EXTEND sizeClause)
-    | (BLOCKSIZE INTEGER_ K?)
+    | (BLOCKSIZE INTEGER_ capacityUnit?)
     | loggingClause
     | (FORCE LOGGING)
     | ENCRYPTION tablespaceEncryptionSpec
@@ -4218,7 +4214,7 @@ alterType
 
 createCluster
     : CREATE CLUSTER (schemaName DOT_)? clusterName LP_ (columnName dataType (COLLATE columnCollationName)? SORT? (COMMA_ columnName dataType (COLLATE columnCollationName)? SORT?)*) RP_
-    ( physicalAttributesClause | SIZE sizeClause | TABLESPACE tablespaceName | INDEX | (SINGLE TABLE)? HASHKEYS INTEGER_ (HASH IS expr)?)? parallelClause?
+    ( physicalAttributesClause | SIZE sizeClause | TABLESPACE tablespaceName | INDEX | (SINGLE TABLE)? HASHKEYS INTEGER_ (HASH IS expr)?)* parallelClause?
     ( NOROWDEPENDENCIES | ROWDEPENDENCIES)? (CACHE | NOCACHE)? clusterRangePartitions?
     ;
 

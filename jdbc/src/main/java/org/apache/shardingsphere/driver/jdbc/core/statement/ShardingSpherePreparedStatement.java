@@ -31,6 +31,7 @@ import org.apache.shardingsphere.driver.jdbc.core.resultset.ShardingSphereResult
 import org.apache.shardingsphere.driver.jdbc.core.resultset.ShardingSphereResultSetUtils;
 import org.apache.shardingsphere.driver.jdbc.core.statement.metadata.ShardingSphereParameterMetaData;
 import org.apache.shardingsphere.driver.jdbc.exception.syntax.EmptySQLException;
+import org.apache.shardingsphere.infra.annotation.HighFrequencyInvocation;
 import org.apache.shardingsphere.infra.binder.context.aware.ParameterAware;
 import org.apache.shardingsphere.infra.binder.context.segment.insert.keygen.GeneratedKeyContext;
 import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
@@ -76,9 +77,9 @@ import org.apache.shardingsphere.infra.metadata.user.Grantee;
 import org.apache.shardingsphere.infra.parser.SQLParserEngine;
 import org.apache.shardingsphere.infra.route.context.RouteContext;
 import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
-import org.apache.shardingsphere.infra.rule.identifier.type.DataNodeContainedRule;
 import org.apache.shardingsphere.infra.rule.identifier.type.RawExecutionRule;
 import org.apache.shardingsphere.infra.rule.identifier.type.StorageConnectorReusableRule;
+import org.apache.shardingsphere.infra.rule.identifier.type.datanode.DataNodeRule;
 import org.apache.shardingsphere.infra.session.query.QueryContext;
 import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
 import org.apache.shardingsphere.parser.rule.SQLParserRule;
@@ -109,6 +110,7 @@ import java.util.stream.Collectors;
 /**
  * ShardingSphere prepared statement.
  */
+@HighFrequencyInvocation
 public final class ShardingSpherePreparedStatement extends AbstractPreparedStatementAdapter {
     
     @Getter
@@ -195,7 +197,7 @@ public final class ShardingSpherePreparedStatement extends AbstractPreparedState
         }
         this.connection = connection;
         metaDataContexts = connection.getContextManager().getMetaDataContexts();
-        hintValueContext = SQLHintUtils.extractHint(sql).orElseGet(HintValueContext::new);
+        hintValueContext = SQLHintUtils.extractHint(sql);
         this.sql = SQLHintUtils.removeHint(sql);
         statements = new ArrayList<>();
         parameterSets = new ArrayList<>();
@@ -760,8 +762,13 @@ public final class ShardingSpherePreparedStatement extends AbstractPreparedState
     
     @Override
     public boolean isAccumulate() {
-        return metaDataContexts.getMetaData().getDatabase(databaseName).getRuleMetaData().findRules(DataNodeContainedRule.class).stream()
-                .anyMatch(each -> each.isNeedAccumulate(executionContext.getSqlStatementContext().getTablesContext().getTableNames()));
+        for (ShardingSphereRule each : metaDataContexts.getMetaData().getDatabase(databaseName).getRuleMetaData().getRules()) {
+            Optional<DataNodeRule> dataNodeRule = each.getRuleIdentifiers().findIdentifier(DataNodeRule.class);
+            if (dataNodeRule.isPresent() && dataNodeRule.get().isNeedAccumulate(executionContext.getSqlStatementContext().getTablesContext().getTableNames())) {
+                return true;
+            }
+        }
+        return false;
     }
     
     @Override

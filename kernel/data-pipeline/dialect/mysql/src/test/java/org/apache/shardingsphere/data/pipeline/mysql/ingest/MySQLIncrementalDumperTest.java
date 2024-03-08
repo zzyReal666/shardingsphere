@@ -28,7 +28,7 @@ import org.apache.shardingsphere.data.pipeline.core.ingest.dumper.mapper.ActualA
 import org.apache.shardingsphere.data.pipeline.core.ingest.dumper.mapper.TableAndSchemaNameMapper;
 import org.apache.shardingsphere.data.pipeline.core.ingest.record.DataRecord;
 import org.apache.shardingsphere.data.pipeline.core.ingest.record.Record;
-import org.apache.shardingsphere.data.pipeline.core.metadata.CaseInsensitiveIdentifier;
+import org.apache.shardingsphere.infra.metadata.caseinsensitive.CaseInsensitiveIdentifier;
 import org.apache.shardingsphere.data.pipeline.core.metadata.loader.PipelineTableMetaDataLoader;
 import org.apache.shardingsphere.data.pipeline.core.metadata.model.PipelineColumnMetaData;
 import org.apache.shardingsphere.data.pipeline.core.metadata.model.PipelineTableMetaData;
@@ -115,8 +115,8 @@ class MySQLIncrementalDumperTest {
         }
     }
     
-    private Map<String, PipelineColumnMetaData> mockOrderColumnsMetaDataMap() {
-        return mockOrderColumnsMetaDataList().stream().collect(Collectors.toMap(PipelineColumnMetaData::getName, Function.identity()));
+    private Map<CaseInsensitiveIdentifier, PipelineColumnMetaData> mockOrderColumnsMetaDataMap() {
+        return mockOrderColumnsMetaDataList().stream().collect(Collectors.toMap(metaData -> new CaseInsensitiveIdentifier(metaData.getName()), Function.identity()));
     }
     
     private List<PipelineColumnMetaData> mockOrderColumnsMetaDataList() {

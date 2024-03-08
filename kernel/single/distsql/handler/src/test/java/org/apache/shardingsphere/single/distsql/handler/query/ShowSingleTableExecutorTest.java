@@ -17,31 +17,54 @@
 
 package org.apache.shardingsphere.single.distsql.handler.query;
 
+import org.apache.shardingsphere.distsql.handler.engine.DistSQLConnectionContext;
+import org.apache.shardingsphere.distsql.handler.engine.query.DistSQLQueryExecuteEngine;
 import org.apache.shardingsphere.infra.datanode.DataNode;
 import org.apache.shardingsphere.infra.merge.result.impl.local.LocalDataQueryResultRow;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
+import org.apache.shardingsphere.infra.rule.identifier.type.RuleIdentifiers;
+import org.apache.shardingsphere.infra.rule.identifier.type.datanode.DataNodeRule;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.single.distsql.statement.rql.ShowSingleTableStatement;
 import org.apache.shardingsphere.single.rule.SingleRule;
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ShowSingleTableExecutorTest {
     
+    private DistSQLQueryExecuteEngine engine;
+    
+    DistSQLQueryExecuteEngine setUp(final ShowSingleTableStatement statement) {
+        return new DistSQLQueryExecuteEngine(statement, "foo_db", mockContextManager(), mock(DistSQLConnectionContext.class));
+    }
+    
+    private ContextManager mockContextManager() {
+        ContextManager result = mock(ContextManager.class, RETURNS_DEEP_STUBS);
+        ShardingSphereDatabase database = mock(ShardingSphereDatabase.class, RETURNS_DEEP_STUBS);
+        when(result.getDatabase("foo_db")).thenReturn(database);
+        SingleRule rule = mockSingleRule();
+        when(database.getRuleMetaData().findSingleRule(SingleRule.class)).thenReturn(Optional.of(rule));
+        return result;
+    }
+    
     @Test
-    void assertGetRowData() {
-        ShowSingleTableExecutor executor = new ShowSingleTableExecutor();
-        executor.setRule(mockSingleRule());
-        Collection<LocalDataQueryResultRow> actual = executor.getRows(mock(ShowSingleTableStatement.class), mock(ContextManager.class));
+    void assertGetRowData() throws SQLException {
+        engine = setUp(mock(ShowSingleTableStatement.class));
+        engine.executeQuery();
+        Collection<LocalDataQueryResultRow> actual = engine.getRows();
         assertThat(actual.size(), is(2));
         Iterator<LocalDataQueryResultRow> iterator = actual.iterator();
         LocalDataQueryResultRow row = iterator.next();
@@ -53,11 +76,10 @@ class ShowSingleTableExecutorTest {
     }
     
     @Test
-    void assertGetSingleTableWithLikeLiteral() {
-        ShowSingleTableExecutor executor = new ShowSingleTableExecutor();
-        executor.setRule(mockSingleRule());
-        ShowSingleTableStatement statement = new ShowSingleTableStatement(null, "%item", null);
-        Collection<LocalDataQueryResultRow> actual = executor.getRows(statement, mock(ContextManager.class));
+    void assertGetSingleTableWithLikeLiteral() throws SQLException {
+        engine = setUp(new ShowSingleTableStatement(null, "%item", null));
+        engine.executeQuery();
+        Collection<LocalDataQueryResultRow> actual = engine.getRows();
         assertThat(actual.size(), is(1));
         Iterator<LocalDataQueryResultRow> iterator = actual.iterator();
         LocalDataQueryResultRow row = iterator.next();
@@ -66,11 +88,13 @@ class ShowSingleTableExecutorTest {
     }
     
     private SingleRule mockSingleRule() {
-        SingleRule result = mock(SingleRule.class);
-        Map<String, Collection<DataNode>> singleTableDataNodeMap = new HashMap<>();
+        Map<String, Collection<DataNode>> singleTableDataNodeMap = new HashMap<>(2, 1F);
         singleTableDataNodeMap.put("t_order", Collections.singleton(new DataNode("ds_1", "t_order")));
         singleTableDataNodeMap.put("t_order_item", Collections.singleton(new DataNode("ds_2", "t_order_item")));
-        when(result.getSingleTableDataNodes()).thenReturn(singleTableDataNodeMap);
+        DataNodeRule dataNodeRule = mock(DataNodeRule.class);
+        when(dataNodeRule.getAllDataNodes()).thenReturn(singleTableDataNodeMap);
+        SingleRule result = mock(SingleRule.class);
+        when(result.getRuleIdentifiers()).thenReturn(new RuleIdentifiers(dataNodeRule));
         return result;
     }
 }

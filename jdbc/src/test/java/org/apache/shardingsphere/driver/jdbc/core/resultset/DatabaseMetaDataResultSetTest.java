@@ -17,6 +17,8 @@
 
 package org.apache.shardingsphere.driver.jdbc.core.resultset;
 
+import org.apache.shardingsphere.infra.rule.identifier.type.RuleIdentifiers;
+import org.apache.shardingsphere.infra.rule.identifier.type.datanode.DataNodeRule;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -133,8 +136,10 @@ class DatabaseMetaDataResultSetTest {
     }
     
     private ShardingRule mockShardingRule() {
-        ShardingRule result = mock(ShardingRule.class);
-        when(result.findLogicTableByActualTable(ACTUAL_TABLE_NAME)).thenReturn(Optional.of(LOGIC_TABLE_NAME));
+        ShardingRule result = mock(ShardingRule.class, RETURNS_DEEP_STUBS);
+        DataNodeRule dataNodeRule = mock(DataNodeRule.class);
+        when(dataNodeRule.findLogicTableByActualTable(ACTUAL_TABLE_NAME)).thenReturn(Optional.of(LOGIC_TABLE_NAME));
+        when(result.getRuleIdentifiers()).thenReturn(new RuleIdentifiers(dataNodeRule));
         return result;
     }
     

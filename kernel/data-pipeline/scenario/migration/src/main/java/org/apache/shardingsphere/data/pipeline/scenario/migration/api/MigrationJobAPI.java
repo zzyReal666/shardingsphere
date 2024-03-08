@@ -43,7 +43,7 @@ import org.apache.shardingsphere.data.pipeline.core.job.type.PipelineJobType;
 import org.apache.shardingsphere.data.pipeline.core.metadata.PipelineDataSourcePersistService;
 import org.apache.shardingsphere.data.pipeline.core.metadata.loader.PipelineSchemaUtils;
 import org.apache.shardingsphere.data.pipeline.core.sqlbuilder.sql.PipelinePrepareSQLBuilder;
-import org.apache.shardingsphere.data.pipeline.migration.distsql.statement.MigrateTableStatement;
+import org.apache.shardingsphere.data.pipeline.migration.distsql.statement.updatable.MigrateTableStatement;
 import org.apache.shardingsphere.data.pipeline.migration.distsql.statement.pojo.SourceTargetEntry;
 import org.apache.shardingsphere.data.pipeline.scenario.migration.MigrationJobId;
 import org.apache.shardingsphere.data.pipeline.scenario.migration.MigrationJobType;
@@ -198,12 +198,12 @@ public final class MigrationJobAPI implements TransmissionJobAPI {
     }
     
     /**
-     * Add migration source resources.
+     * Register migration source storage units.
      *
      * @param contextKey context key
      * @param propsMap data source pool properties map
      */
-    public void addMigrationSourceResources(final PipelineContextKey contextKey, final Map<String, DataSourcePoolProperties> propsMap) {
+    public void registerMigrationSourceStorageUnits(final PipelineContextKey contextKey, final Map<String, DataSourcePoolProperties> propsMap) {
         Map<String, DataSourcePoolProperties> existDataSources = dataSourcePersistService.load(contextKey, getType());
         Collection<String> duplicateDataSourceNames = new HashSet<>(propsMap.size(), 1F);
         for (Entry<String, DataSourcePoolProperties> entry : propsMap.entrySet()) {
