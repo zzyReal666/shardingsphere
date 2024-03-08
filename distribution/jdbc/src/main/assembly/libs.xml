@@ -17,47 +17,48 @@
 
 <assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
-    <id>shardingsphere-jdbc</id>
+    <id>shardingsphere-jdbc-bin</id>
     <formats>
-        <format>jar</format>
-<!--        <format>tar.gz</format>-->
+        <format>tar.gz</format>
     </formats>
-    <includeBaseDirectory>false</includeBaseDirectory>
-<!--    <baseDirectory>zzyReal666</baseDirectory>-->
-<!--    -->
-<!--    <fileSets>-->
-<!--        <fileSet>-->
-<!--            <directory>../../</directory>-->
-<!--            <includes>-->
-<!--                <include>LICENSE</include>-->
-<!--                <include>NOTICE</include>-->
-<!--                <include>DISCLAIMER</include>-->
-<!--            </includes>-->
-<!--        </fileSet>-->
-<!--        <fileSet>-->
-<!--            <directory>src/main/release-docs</directory>-->
-<!--            <includes>-->
-<!--                <include>**/*</include>-->
-<!--            </includes>-->
-<!--            <outputDirectory>/</outputDirectory>-->
-<!--        </fileSet>-->
-<!--    </fileSets>-->
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <baseDirectory>${project.build.finalName}-shardingsphere-jdbc-bin</baseDirectory>
+    
+    <fileSets>
+        <fileSet>
+            <directory>../../</directory>
+            <includes>
+                <include>LICENSE</include>
+                <include>NOTICE</include>
+                <include>DISCLAIMER</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>src/main/release-docs</directory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
+    </fileSets>
     
     <dependencySets>
+        <dependencySet>
+            <useProjectArtifact>true</useProjectArtifact>
+            <unpack>false</unpack>
+            <outputDirectory>/pack</outputDirectory>
+            <includes>
+                <include>*</include>
+            </includes>
+        </dependencySet>
+
 <!--        <dependencySet>-->
 <!--            <useProjectArtifact>true</useProjectArtifact>-->
 <!--            <unpack>true</unpack>-->
-<!--            <outputDirectory>/</outputDirectory>-->
+<!--            <outputDirectory>/unpack</outputDirectory>-->
 <!--            <includes>-->
 <!--                <include>*</include>-->
 <!--            </includes>-->
 <!--        </dependencySet>-->
-
-        <dependencySet>
-            <!-- 包含所有项目依赖 -->
-            <outputDirectory>/</outputDirectory>
-            <useProjectArtifact>true</useProjectArtifact> <!-- 包含项目本身构建的JAR -->
-            <unpack>true</unpack> <!-- 解压依赖的JAR包以合并所有内容 -->
-        </dependencySet>
     </dependencySets>
 </assembly>

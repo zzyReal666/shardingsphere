@@ -97,6 +97,7 @@
                                 <configuration>
                                     <descriptors>
                                         <descriptor>src/main/assembly/shardingsphere-jdbc-binary-distribution.xml</descriptor>
+<!--                                        <descriptor>src/main/assembly/libs.xml</descriptor>-->
                                     </descriptors>
                                 </configuration>
                             </execution>
