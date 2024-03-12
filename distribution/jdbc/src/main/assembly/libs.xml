@@ -51,14 +51,5 @@
                 <include>*</include>
             </includes>
         </dependencySet>
-
-<!--        <dependencySet>-->
-<!--            <useProjectArtifact>true</useProjectArtifact>-->
-<!--            <unpack>true</unpack>-->
-<!--            <outputDirectory>/unpack</outputDirectory>-->
-<!--            <includes>-->
-<!--                <include>*</include>-->
-<!--            </includes>-->
-<!--        </dependencySet>-->
     </dependencySets>
 </assembly>
