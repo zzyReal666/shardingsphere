@@ -17,8 +17,6 @@
 
 package org.apache.shardingsphere.proxy.backend.util;
 
-import org.apache.shardingsphere.broadcast.api.config.BroadcastRuleConfiguration;
-import org.apache.shardingsphere.broadcast.rule.BroadcastRule;
 import org.apache.shardingsphere.distsql.handler.engine.update.ral.rule.spi.database.ImportRuleConfigurationProvider;
 import org.apache.shardingsphere.distsql.handler.exception.datasource.MissingRequiredDataSourcesException;
 import org.apache.shardingsphere.distsql.handler.exception.storageunit.InvalidStorageUnitsException;
@@ -41,8 +39,6 @@ import org.apache.shardingsphere.infra.spi.type.ordered.OrderedSPILoader;
 import org.apache.shardingsphere.infra.spi.type.typed.TypedSPILoader;
 import org.apache.shardingsphere.infra.yaml.config.pojo.rule.YamlRuleConfiguration;
 import org.apache.shardingsphere.infra.yaml.config.swapper.rule.YamlRuleConfigurationSwapper;
-import org.apache.shardingsphere.mask.api.config.MaskRuleConfiguration;
-import org.apache.shardingsphere.mask.rule.MaskRule;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
 import org.apache.shardingsphere.proxy.backend.config.yaml.YamlProxyDataSourceConfiguration;
@@ -50,9 +46,6 @@ import org.apache.shardingsphere.proxy.backend.config.yaml.YamlProxyDatabaseConf
 import org.apache.shardingsphere.proxy.backend.config.yaml.swapper.YamlProxyDataSourceConfigurationSwapper;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.exception.MissingDatabaseNameException;
-import org.apache.shardingsphere.proxy.backend.handler.distsql.ral.common.checker.MaskRuleConfigurationImportChecker;
-import org.apache.shardingsphere.single.api.config.SingleRuleConfiguration;
-import org.apache.shardingsphere.single.rule.SingleRule;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -63,14 +56,11 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 /**
  * Yaml database configuration import executor.
  */
 public final class YamlDatabaseConfigurationImportExecutor {
-    
-    private final MaskRuleConfigurationImportChecker maskRuleConfigImportChecker = new MaskRuleConfigurationImportChecker();
     
     private final YamlProxyDataSourceConfigurationSwapper dataSourceConfigSwapper = new YamlProxyDataSourceConfigurationSwapper();
     
@@ -146,18 +136,10 @@ public final class YamlDatabaseConfigurationImportExecutor {
     }
     
     private void addRule(final Collection<RuleConfiguration> ruleConfigs, final RuleConfiguration ruleConfig, final ShardingSphereDatabase database) {
-        if (ruleConfig instanceof MaskRuleConfiguration) {
-            addMaskRuleConfiguration((MaskRuleConfiguration) ruleConfig, ruleConfigs, database);
-        } else if (ruleConfig instanceof BroadcastRuleConfiguration) {
-            addBroadcastRuleConfiguration((BroadcastRuleConfiguration) ruleConfig, ruleConfigs, database);
-        } else if (ruleConfig instanceof SingleRuleConfiguration) {
-            addSingleRuleConfiguration((SingleRuleConfiguration) ruleConfig, ruleConfigs, database);
-        } else {
-            ImportRuleConfigurationProvider provider = TypedSPILoader.getService(ImportRuleConfigurationProvider.class, ruleConfig.getClass());
-            provider.check(database, ruleConfig);
-            ruleConfigs.add(ruleConfig);
-            database.getRuleMetaData().getRules().add(provider.build(database, ruleConfig, ProxyContext.getInstance().getContextManager().getInstanceContext()));
-        }
+        ImportRuleConfigurationProvider provider = TypedSPILoader.getService(ImportRuleConfigurationProvider.class, ruleConfig.getClass());
+        provider.check(database, ruleConfig);
+        ruleConfigs.add(ruleConfig);
+        database.getRuleMetaData().getRules().add(provider.build(database, ruleConfig, ProxyContext.getInstance().getContextManager().getInstanceContext()));
     }
     
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -169,29 +151,6 @@ public final class YamlDatabaseConfigurationImportExecutor {
             result.put(swapper.getOrder(), (RuleConfiguration) swapper.swapToObject(each));
         }
         return result;
-    }
-    
-    private void addMaskRuleConfiguration(final MaskRuleConfiguration ruleConfig, final Collection<RuleConfiguration> ruleConfigs, final ShardingSphereDatabase database) {
-        maskRuleConfigImportChecker.check(database, ruleConfig);
-        ruleConfigs.add(ruleConfig);
-        database.getRuleMetaData().getRules().add(new MaskRule(ruleConfig));
-    }
-    
-    private void addBroadcastRuleConfiguration(final BroadcastRuleConfiguration ruleConfig, final Collection<RuleConfiguration> ruleConfigs, final ShardingSphereDatabase database) {
-        ruleConfigs.add(ruleConfig);
-        database.getRuleMetaData().getRules().add(new BroadcastRule(ruleConfig, database.getName(),
-                database.getResourceMetaData().getStorageUnits().entrySet().stream()
-                        .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().getDataSource(), (oldValue, currentValue) -> oldValue, LinkedHashMap::new)),
-                database.getRuleMetaData().getRules()));
-    }
-    
-    private void addSingleRuleConfiguration(final SingleRuleConfiguration ruleConfig, final Collection<RuleConfiguration> ruleConfigs, final ShardingSphereDatabase database) {
-        ruleConfigs.add(ruleConfig);
-        database.getRuleMetaData().getRules().add(
-                new SingleRule(ruleConfig, database.getName(), database.getProtocolType(),
-                        database.getResourceMetaData().getStorageUnits().entrySet().stream()
-                                .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().getDataSource(), (oldValue, currentValue) -> oldValue, LinkedHashMap::new)),
-                        database.getRuleMetaData().getRules()));
     }
     
     private void dropDatabase(final String databaseName) {
