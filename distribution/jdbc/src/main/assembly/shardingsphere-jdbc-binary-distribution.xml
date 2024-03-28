@@ -24,31 +24,14 @@
     <includeBaseDirectory>true</includeBaseDirectory>
     <baseDirectory>${project.build.finalName}-shardingsphere-jdbc-bin</baseDirectory>
     
-    <fileSets>
-        <fileSet>
-            <directory>../../</directory>
-            <includes>
-                <include>LICENSE</include>
-                <include>NOTICE</include>
-                <include>DISCLAIMER</include>
-            </includes>
-        </fileSet>
-        <fileSet>
-            <directory>src/main/release-docs</directory>
-            <includes>
-                <include>**/*</include>
-            </includes>
-            <outputDirectory>/</outputDirectory>
-        </fileSet>
-    </fileSets>
-    
+
     <dependencySets>
         <dependencySet>
             <useProjectArtifact>true</useProjectArtifact>
             <unpack>false</unpack>
             <outputDirectory>/lib</outputDirectory>
             <includes>
-                <include>org.apache.shardingsphere:*</include>
+                <include>*</include>
             </includes>
         </dependencySet>
     </dependencySets>
