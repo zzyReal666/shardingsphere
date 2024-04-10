@@ -18,6 +18,7 @@ FROM alpine AS prepare
 
 ARG APP_NAME
 
+USER root
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} /opt/shardingsphere-proxy
 
