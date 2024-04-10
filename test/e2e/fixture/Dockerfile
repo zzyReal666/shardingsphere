@@ -18,7 +18,6 @@ FROM alpine AS prepare
 
 ARG APP_NAME
 
-USER root
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} /opt/shardingsphere-proxy
 
@@ -31,5 +30,4 @@ COPY --from=prepare /opt/shardingsphere-proxy /opt/shardingsphere-proxy
 EXPOSE 3307
 EXPOSE 3308
 
-RUN CHMODE +x /opt/shardingsphere-proxy/bin/start.sh
 ENTRYPOINT ["/opt/shardingsphere-proxy/bin/start.sh"]
