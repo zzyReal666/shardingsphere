@@ -33,24 +33,21 @@
             <artifactId>shardingsphere-jdbc-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
             <artifactId>shardingsphere-cluster-mode-repository-zookeeper</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
+            <groupId>com.sinocipher</groupId>
+            <artifactId>sinocipher-dbenc-algorithm</artifactId>
+            <version>5.4.1-SNAPSHOT</version>
         </dependency>
-
         <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
+            <groupId>org.apache.shardingsphere</groupId>
+            <artifactId>shardingsphere-plugin-features-encrypt-like</artifactId>
+            <version>5.4.1-SNAPSHOT</version>
         </dependency>
-
     </dependencies>
     
     <profiles>
@@ -62,8 +59,9 @@
                 <rat.skip>false</rat.skip>
             </properties>
             <build>
-                <finalName>apache-shardingsphere-${project.version}</finalName>
+                <finalName>zzy</finalName>
                 <plugins>
+
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <executions>
@@ -76,11 +74,13 @@
                                 <configuration>
                                     <descriptors>
                                         <descriptor>src/main/assembly/shardingsphere-jdbc-binary-distribution.xml</descriptor>
+                                        <descriptor>src/main/assembly/all-in-one.xml</descriptor>
                                     </descriptors>
                                 </configuration>
                             </execution>
                         </executions>
                     </plugin>
+
                     <plugin>
                         <groupId>net.nicoulaj.maven.plugins</groupId>
                         <artifactId>checksum-maven-plugin</artifactId>
