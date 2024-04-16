@@ -21,7 +21,7 @@ mode:
     type: ZooKeeper
     props:
       namespace: macTest
-      server-lists: 192.168.7.158:2181
+      server-lists: 192.168.7.113:12181
       timeToLiveSeconds: 60
       operationTimeoutMilliseconds: 500
       retryIntervalMilliseconds: 500
