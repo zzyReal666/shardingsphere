@@ -15,11 +15,11 @@
 # limitations under the License.
 #
 
-databaseName: encrypt
+databaseName: db_enc_test
 
 dataSources:
   encrypt:
-    url: jdbc:mysql://192.168.7.158:13306/encrypt?serverTimezone=UTC&useSSL=false&characterEncoding=utf-8
+    url: jdbc:mysql://192.168.7.113:13306/db_enc_test?serverTimezone=UTC&useSSL=false&characterEncoding=utf-8
     username: root
     password: 123456
     connectionTimeoutMilliseconds: 30000
