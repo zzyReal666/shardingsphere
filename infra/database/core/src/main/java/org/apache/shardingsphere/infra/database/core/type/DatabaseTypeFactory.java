@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DatabaseTypeFactory {
     
-    /**
+    /*\\\\
      * Get database type.
      *
      * @param url database URL

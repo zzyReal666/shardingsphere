@@ -35,7 +35,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 class MySQLFormatVisitorIT {
-    
+
     @ParameterizedTest(name = "{0}")
     @ArgumentsSource(TestCaseArgumentsProvider.class)
     void assertSQLFormat(final String caseId, final String inputSQL, final String expectFormattedSQL, final String expectFormattedParameterizedSQL) {
@@ -43,15 +43,15 @@ class MySQLFormatVisitorIT {
         assertThat(sqlFormatEngine.format(inputSQL, false, PropertiesBuilder.build(new Property("parameterized", Boolean.FALSE.toString()))), is(expectFormattedSQL));
         assertThat(sqlFormatEngine.format(inputSQL, false, PropertiesBuilder.build(new Property("parameterized", Boolean.TRUE.toString()))), is(expectFormattedParameterizedSQL));
     }
-    
+
     private static class TestCaseArgumentsProvider implements ArgumentsProvider {
-        
+
         @Override
         public Stream<? extends Arguments> provideArguments(final ExtensionContext extensionContext) {
             return Stream.of(Arguments.of("select_with_union",
-                    "select a+1 as b, name n from table1 join table2 where id=1 and name='lu';",
-                    "SELECT a + 1 AS b, name n\nFROM table1 JOIN table2\nWHERE \n\tid = 1\n\tand name = 'lu';",
-                    "SELECT a + ? AS b, name n\nFROM table1 JOIN table2\nWHERE \n\tid = ?\n\tand name = ?;"),
+                            "select a+1 as b, name n from table1 join table2 where id=1 and name='lu';",
+                            "SELECT a + 1 AS b, name n\nFROM table1 JOIN table2\nWHERE \n\tid = 1\n\tand name = 'lu';",
+                            "SELECT a + ? AS b, name n\nFROM table1 JOIN table2\nWHERE \n\tid = ?\n\tand name = ?;"),
                     Arguments.of("select_item_nums",
                             "select id, name, age, sex, ss, yy from table1 where id=1",
                             "SELECT id , name , age , \n\tsex , ss , yy \nFROM table1\nWHERE \n\tid = 1;",

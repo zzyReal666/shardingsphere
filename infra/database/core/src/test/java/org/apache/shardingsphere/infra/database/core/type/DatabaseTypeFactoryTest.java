@@ -40,4 +40,6 @@ class DatabaseTypeFactoryTest {
     void assertGetDatabaseTypeWithUnrecognizedURL() {
         assertThrows(UnsupportedStorageTypeException.class, () -> DatabaseTypeFactory.get("jdbc:not-existed:test"));
     }
+
+
 }

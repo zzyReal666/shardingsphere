@@ -27,6 +27,7 @@
     <packaging>pom</packaging>
     <name>${project.artifactId}</name>
     <modules>
+        <module>clickhouse</module>
         <module>sql92</module>
         <module>postgresql</module>
         <module>mysql</module>
