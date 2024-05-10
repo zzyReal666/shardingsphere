@@ -17,46 +17,305 @@
 
 grammar BaseRule;
 
-import Comments, Symbol, Keyword, Keyword, Literals;
+import Symbol, Keyword, SQL92Keyword, Literals;
 
-
-// Basics
-
-floatingLiteral
-    : FLOATING_LITERAL
-    | DOT (DECIMAL_LITERAL | OCTAL_LITERAL)
-    | DECIMAL_LITERAL DOT (DECIMAL_LITERAL | OCTAL_LITERAL)?  // can't move this to the lexer or it will break nested tuple access: t.1.2
+parameterMarker
+    : QUESTION_
     ;
-numberLiteral: (PLUS | DASH)? (floatingLiteral | OCTAL_LITERAL | DECIMAL_LITERAL | HEXADECIMAL_LITERAL | INF | NAN_SQL);
-literal
-    : numberLiteral
-    | STRING_LITERAL
-    | NULL_SQL
-    ;
-interval: SECOND | MINUTE | HOUR | DAY | WEEK | MONTH | QUARTER | YEAR;
-keyword
-    // except NULL_SQL, INF, NAN_SQL
-    : AFTER | ALIAS | ALL | ALTER | AND | ANTI | ANY | ARRAY | AS | ASCENDING | ASOF | AST | ASYNC | ATTACH | BETWEEN | BOTH | BY | CASE
-    | CAST | CHECK | CLEAR | CLUSTER | CODEC | COLLATE | COLUMN | COMMENT | CONSTRAINT | CREATE | CROSS | CUBE | CURRENT | DATABASE
-    | DATABASES | DATE | DEDUPLICATE | DEFAULT | DELAY | DELETE | DESCRIBE | DESC | DESCENDING | DETACH | DICTIONARIES | DICTIONARY | DISK
-    | DISTINCT | DISTRIBUTED | DROP | ELSE | END | ENGINE | EVENTS | EXISTS | EXPLAIN | EXPRESSION | EXTRACT | FETCHES | FINAL | FIRST
-    | FLUSH | FOR | FOLLOWING | FOR | FORMAT | FREEZE | FROM | FULL | FUNCTION | GLOBAL | GRANULARITY | GROUP | HAVING | HIERARCHICAL | ID
-    | IF | ILIKE | IN | INDEX | INJECTIVE | INNER | INSERT | INTERVAL | INTO | IS | IS_OBJECT_ID | JOIN | JSON_FALSE | JSON_TRUE | KEY
-    | KILL | LAST | LAYOUT | LEADING | LEFT | LIFETIME | LIKE | LIMIT | LIVE | LOCAL | LOGS | MATERIALIZE | MATERIALIZED | MAX | MERGES
-    | MIN | MODIFY | MOVE | MUTATION | NO | NOT | NULLS | OFFSET | ON | OPTIMIZE | OR | ORDER | OUTER | OUTFILE | OVER | PARTITION
-    | POPULATE | PRECEDING | PREWHERE | PRIMARY | RANGE | RELOAD | REMOVE | RENAME | REPLACE | REPLICA | REPLICATED | RIGHT | ROLLUP | ROW
-    | ROWS | SAMPLE | SELECT | SEMI | SENDS | SET | SETTINGS | SHOW | SOURCE | START | STOP | SUBSTRING | SYNC | SYNTAX | SYSTEM | TABLE
-    | TABLES | TEMPORARY | TEST | THEN | TIES | TIMEOUT | TIMESTAMP | TOTALS | TRAILING | TRIM | TRUNCATE | TO | TOP | TTL | TYPE
-    | UNBOUNDED | UNION | UPDATE | USE | USING | UUID | VALUES | VIEW | VOLUME | WATCH | WHEN | WHERE | WINDOW | WITH
-    ;
-keywordForAlias
-    : DATE | FIRST | ID | KEY
-    ;
-alias: IDENTIFIER | keywordForAlias;  // |interval| can't be an alias, otherwise 'INTERVAL 1 SOMETHING' becomes ambiguous.
-identifier: IDENTIFIER | interval | keyword;
-identifierOrNull: identifier | NULL_SQL;  // NULL_SQL can be only 'Null' here.
-enumValue: STRING_LITERAL EQ_SINGLE numberLiteral;
 
+literals
+    : stringLiterals
+    | numberLiterals
+    | dateTimeLiterals
+    | hexadecimalLiterals
+    | bitValueLiterals
+    | booleanLiterals
+    | nullValueLiterals
+    ;
 
-// Databases
-databaseIdentifier: identifier;
+stringLiterals
+    : characterSetName? STRING_ collateClause?
+    ;
+
+numberLiterals
+    : (PLUS_ | MINUS_)? NUMBER_
+    ;
+
+dateTimeLiterals
+    : (DATE | TIME | TIMESTAMP) STRING_
+    | LBE_ identifier STRING_ RBE_
+    ;
+
+hexadecimalLiterals
+    : characterSetName? HEX_DIGIT_ collateClause?
+    ;
+
+bitValueLiterals
+    : characterSetName? BIT_NUM_ collateClause?
+    ;
+    
+booleanLiterals
+    : TRUE | FALSE
+    ;
+
+nullValueLiterals
+    : NULL
+    ;
+
+identifier
+    : IDENTIFIER_ | unreservedWord
+    ;
+
+unreservedWord
+    : ADA
+    | C92 | CATALOG_NAME | CHARACTER_SET_CATALOG | CHARACTER_SET_NAME | CHARACTER_SET_SCHEMA
+    | CLASS_ORIGIN | COBOL | COLLATION_CATALOG | COLLATION_NAME | COLLATION_SCHEMA
+    | COLUMN_NAME | COMMAND_FUNCTION | COMMITTED | CONDITION_NUMBER | CONNECTION_NAME
+    | CONSTRAINT_CATALOG | CONSTRAINT_NAME | CONSTRAINT_SCHEMA | CURSOR_NAME
+    | DATA | DATETIME_INTERVAL_CODE | DATETIME_INTERVAL_PRECISION | DYNAMIC_FUNCTION
+    | FORTRAN
+    | LENGTH
+    | MESSAGE_LENGTH | MESSAGE_OCTET_LENGTH | MESSAGE_TEXT | MORE92 | MUMPS
+    | NAME | NULLABLE | NUMBER
+    | PASCAL | PLI
+    | REPEATABLE | RETURNED_LENGTH | RETURNED_OCTET_LENGTH | RETURNED_SQLSTATE | ROW_COUNT
+    | SCALE | SCHEMA_NAME | SERIALIZABLE | SERVER_NAME | SUBCLASS_ORIGIN
+    | TABLE_NAME | TYPE
+    | UNCOMMITTED | UNNAMED
+    ;
+
+variable
+    : (AT_? AT_)? (GLOBAL | LOCAL)? DOT_? identifier
+    ;
+
+schemaName
+    : identifier
+    ;
+
+tableName
+    : (owner DOT_)? name
+    ;
+
+columnName
+    : (owner DOT_)? name
+    ;
+
+viewName
+    : identifier
+    | (owner DOT_)? identifier
+    ;
+
+owner
+    : identifier
+    ;
+
+name
+    : identifier
+    ;
+
+constraintName
+    : identifier
+    ;
+
+columnNames
+    : LP_? columnName (COMMA_ columnName)* RP_?
+    ;
+
+tableNames
+    : LP_? tableName (COMMA_ tableName)* RP_?
+    ;
+
+characterSetName
+    : IDENTIFIER_
+    ;
+
+expr
+    : expr andOperator expr
+    | expr orOperator expr
+    | notOperator expr
+    | LP_ expr RP_
+    | booleanPrimary
+    ;
+
+andOperator
+    : AND | AND_
+    ;
+    
+orOperator
+    : OR
+    ;
+
+notOperator
+    : NOT | NOT_
+    ;
+
+booleanPrimary
+    : booleanPrimary IS NOT? (TRUE | FALSE | UNKNOWN | NULL)
+    | booleanPrimary SAFE_EQ_ predicate
+    | booleanPrimary comparisonOperator predicate
+    | booleanPrimary comparisonOperator (ALL | ANY) subquery
+    | predicate
+    ;
+
+comparisonOperator
+    : EQ_ | GTE_ | GT_ | LTE_ | LT_ | NEQ_
+    ;
+
+predicate
+    : bitExpr NOT? IN subquery
+    | bitExpr NOT? IN LP_ expr (COMMA_ expr)* RP_
+    | bitExpr NOT? BETWEEN bitExpr AND predicate
+    | bitExpr NOT? LIKE simpleExpr (ESCAPE simpleExpr)?
+    | bitExpr
+    ;
+
+bitExpr
+    : bitExpr VERTICAL_BAR_ bitExpr
+    | bitExpr AMPERSAND_ bitExpr
+    | bitExpr SIGNED_LEFT_SHIFT_ bitExpr
+    | bitExpr SIGNED_RIGHT_SHIFT_ bitExpr
+    | bitExpr PLUS_ bitExpr
+    | bitExpr MINUS_ bitExpr
+    | bitExpr ASTERISK_ bitExpr
+    | bitExpr SLASH_ bitExpr
+    | bitExpr MOD_ bitExpr
+    | bitExpr CARET_ bitExpr
+    | bitExpr PLUS_ intervalExpression
+    | bitExpr MINUS_ intervalExpression
+    | simpleExpr
+    ;
+
+simpleExpr
+    : functionCall
+    | parameterMarker
+    | literals
+    | columnName
+    | simpleExpr COLLATE (STRING_ | identifier)
+    | variable
+    | (PLUS_ | MINUS_ | TILDE_ | NOT_) simpleExpr
+    | LP_ expr (COMMA_ expr)* RP_
+    | EXISTS? subquery
+    | LBE_ identifier expr RBE_
+    | matchExpression
+    | caseExpression
+    | intervalExpression
+    ;
+
+functionCall
+    : aggregationFunction | specialFunction | regularFunction 
+    ;
+
+aggregationFunction
+    : aggregationFunctionName LP_ distinct? (expr (COMMA_ expr)* | ASTERISK_)? RP_
+    ;
+
+aggregationFunctionName
+    : MAX | MIN | SUM | COUNT | AVG
+    ;
+
+distinct
+    : DISTINCT
+    ;
+
+specialFunction
+    : castFunction | convertFunction | positionFunction | substringFunction | extractFunction | trimFunction
+    ;
+
+castFunction
+    : CAST LP_ (expr | NULL) AS dataType RP_
+    ;
+
+convertFunction
+    : CONVERT LP_ expr USING identifier RP_
+    ;
+
+positionFunction
+    : POSITION LP_ expr IN expr RP_
+    ;
+
+substringFunction
+    : SUBSTRING LP_ expr FROM NUMBER_ (FOR NUMBER_)? RP_
+    ;
+
+extractFunction
+    : EXTRACT LP_ identifier FROM expr RP_
+    ;
+
+trimFunction
+    : TRIM LP_ (LEADING | BOTH | TRAILING) STRING_ FROM STRING_ RP_
+    ;
+
+regularFunction
+    : regularFunctionName LP_ (expr (COMMA_ expr)* | ASTERISK_)? RP_
+    ;
+
+regularFunctionName
+    : identifier | IF | CURRENT_TIMESTAMP | LOCALTIME | LOCALTIMESTAMP | INTERVAL
+    ;
+
+matchExpression
+    : literals MATCH UNIQUE? (PARTIAL | FULL)  subquery
+    ;
+
+caseExpression
+    : CASE simpleExpr? caseWhen+ caseElse? END
+    ;
+
+caseWhen
+    : WHEN expr THEN expr
+    ;
+
+caseElse
+    : ELSE expr
+    ;
+
+intervalExpression
+    : INTERVAL expr intervalUnit
+    ;
+
+intervalUnit
+    : MICROSECOND | SECOND | MINUTE | HOUR | DAY | WEEK | MONTH | QUARTER | YEAR
+    ;
+
+subquery
+    : 'Default does not match anything'
+    ;
+
+orderByClause
+    : ORDER BY orderByItem (COMMA_ orderByItem)*
+    ;
+
+orderByItem
+    : (columnName | numberLiterals) (ASC | DESC)?
+    ;
+
+dataType
+    : dataTypeName dataTypeLength? characterSet? collateClause? | dataTypeName LP_ STRING_ (COMMA_ STRING_)* RP_ characterSet? collateClause?
+    ;
+
+dataTypeName
+    : CHARACTER | CHARACTER VARYING | NATIONAL CHARACTER | NATIONAL CHARACTER VARYING | CHAR | VARCHAR | NCHAR
+    | NATIONAL CHAR | NATIONAL CHAR VARYING | BIT | BIT VARYING | NUMERIC | DECIMAL | DEC | INTEGER | SMALLINT
+    | FLOAT | REAL | DOUBLE PRECISION | DATE | TIME | TIMESTAMP | INTERVAL | TIME WITH TIME ZONE | TIMESTAMP WITH TIME ZONE
+    | identifier
+    ;
+
+dataTypeLength
+    : LP_ NUMBER_ (COMMA_ NUMBER_)? RP_
+    ;
+
+characterSet
+    : (CHARACTER | CHAR) SET EQ_? ignoredIdentifier
+    ;
+
+collateClause
+    : COLLATE EQ_? (STRING_ | ignoredIdentifier)
+    ;
+
+ignoredIdentifier
+    : identifier (DOT_ identifier)?
+    ;
+
+dropBehaviour
+    : (CASCADE | RESTRICT)?
+    ;

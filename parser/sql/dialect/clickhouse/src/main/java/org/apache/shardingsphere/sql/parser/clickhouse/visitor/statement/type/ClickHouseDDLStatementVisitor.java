@@ -9,4 +9,5 @@ import org.apache.shardingsphere.sql.parser.clickhouse.visitor.statement.ClickHo
  * @since 2024/5/9 15:39
  */
 public class ClickHouseDDLStatementVisitor extends ClickHouseStatementVisitor implements DDLStatementVisitor {
+
 }

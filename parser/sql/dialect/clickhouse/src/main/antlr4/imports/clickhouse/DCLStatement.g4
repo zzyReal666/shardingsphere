@@ -15,35 +15,48 @@
  * limitations under the License.
  */
 
-lexer grammar Literals;
+grammar DCLStatement;
 
-import Alphabet, Symbol;
+import BaseRule;
 
-IDENTIFIER_
-    : [A-Za-z_$0-9\u0080-\uFFFF]*?[A-Za-z_$\u0080-\uFFFF]+?[A-Za-z_$0-9\u0080-\uFFFF]*
-    |  DQ_ ~'"'+ DQ_
+grant
+    : GRANT privilegeClause TO grantee (COMMA_ grantee)* (WITH GRANT OPTION)?
     ;
 
-STRING_ 
-    : (SQ_ ('\\'. | '\'\'' | ~('\'' | '\\'))* SQ_)
+revoke
+    : REVOKE (GRANT OPTION FOR)? privilegeClause FROM grantee (COMMA_ grantee)* dropBehaviour
+    ;  
+
+privilegeClause
+    : privileges ON onObjectClause
     ;
 
-NUMBER_
-    : INT_? DOT_? INT_ (E (PLUS_ | MINUS_)? INT_)?
+privileges
+    : privilegeType columnNames
     ;
 
-HEX_DIGIT_
-    : '0x' HEX_+ | 'X' SQ_ HEX_+ SQ_
+privilegeType
+    : ALL PRIVILEGES
+    | SELECT
+    | DELETE
+    | INSERT
+    | UPDATE
+    | REFERENCES
+    | USAGE
     ;
 
-BIT_NUM_
-    : '0b' ('0' | '1')+ | B SQ_ ('0' | '1')+ SQ_
+grantee
+    : PUBLIC | identifier
     ;
 
-fragment INT_
-    : [0-9]+
+onObjectClause
+    : objectType? privilegeLevel
     ;
 
-fragment HEX_
-    : [0-9a-fA-F]
+objectType
+    : TABLE
+    ;
+
+privilegeLevel
+    : tableName
     ;

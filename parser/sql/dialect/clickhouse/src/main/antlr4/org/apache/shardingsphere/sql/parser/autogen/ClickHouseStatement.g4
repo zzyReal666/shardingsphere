@@ -1,10 +1,117 @@
 grammar ClickHouseStatement;
 
-import DMLStatement,Comments;
+import Comments, DDLStatement, TCLStatement, DCLStatement, RLStatement;
 
 execute
     : (select
     | insert
+    | update
+    | delete
+    | replace
+    | binlog
+    | createTable
+    | alterStatement
+    | repairTable
+    | dropTable
+    | truncateTable
+    | createIndex
+    | dropIndex
+    | createProcedure
+    | dropProcedure
+    | createFunction
+    | dropFunction
+    | createDatabase
+    | dropDatabase
+    | createEvent
+    | dropEvent
+    | createLogfileGroup
+    | dropLogfileGroup
+    | createServer
+    | dropServer
+    | createView
+    | dropView
+    | createTrigger
+    | dropTrigger
+    | alterResourceGroup
+    | createResourceGroup
+    | dropResourceGroup
+    | prepare
+    | executeStmt
+    | deallocate
+    | setTransaction
+    | beginTransaction
+    | setAutoCommit
+    | commit
+    | rollback
+    | savepoint
+    | grant
+    | revoke
+    | createUser
+    | dropUser
+    | alterUser
+    | renameUser
+    | createRole
+    | dropRole
+    | setDefaultRole
+    | setRole
+    | createSRSStatement
+    | dropSRSStatement
+    | flush
+    | getDiagnosticsStatement
+    | groupReplication
+    | handlerStatement
+    | help
+    | importStatement
+    | install
+    | kill
+    | loadStatement
+    | lock
+    | cacheIndex
+    | loadIndexInfo
+    | optimizeTable
+    | purgeBinaryLog
+    | releaseSavepoint
+    | resetStatement
+    | setPassword
+    | setTransaction
+    | setResourceGroup
+    | resignalStatement
+    | signalStatement
+    | restart
+    | shutdown
+    | begin
+    | use
+    | explain
+    | doStatement
+    | show
+    | setVariable
+    | setCharacter
+    | call
+    | changeMasterTo
+    | changeReplicationFilter
+    | checkTable
+    | checksumTable
+    | clone
+    | changeReplicationSourceTo
+    | startSlave
+    | stopSlave
+    | analyzeTable
+    | renameTable
+    | uninstall
+    | unlock
+    | xaBegin
+    | xaPrepare
+    | xaCommit
+    | xaRollback
+    | xaEnd
+    | xaRecovery
+    | createLoadableFunction
+    | createTablespace
+    | alterTablespace
+    | dropTablespace
+    | delimiter
+    | startReplica
+    // TODO consider refactor following sytax to SEMI_? EOF
     ) (SEMI_ EOF? | EOF)
     | EOF
     ;
