@@ -17,12 +17,11 @@
 
 package org.apache.shardingsphere.readwritesplitting.checker;
 
-import com.google.common.base.Strings;
 import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
 import org.apache.shardingsphere.infra.expr.core.InlineExpressionParserFactory;
 import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
 import org.apache.shardingsphere.infra.rule.attribute.datasource.DataSourceMapperRuleAttribute;
-import org.apache.shardingsphere.readwritesplitting.api.rule.ReadwriteSplittingDataSourceRuleConfiguration;
+import org.apache.shardingsphere.readwritesplitting.api.rule.ReadwriteSplittingDataSourceGroupRuleConfiguration;
 import org.apache.shardingsphere.readwritesplitting.constant.ReadwriteSplittingDataSourceType;
 import org.apache.shardingsphere.readwritesplitting.exception.ReadwriteSplittingRuleExceptionIdentifier;
 import org.apache.shardingsphere.readwritesplitting.exception.actual.DuplicateReadwriteSplittingActualDataSourceException;
@@ -41,13 +40,14 @@ public final class ReadwriteSplittingDataSourceRuleConfigurationChecker {
     
     private final String databaseName;
     
-    private final ReadwriteSplittingDataSourceRuleConfiguration config;
+    private final ReadwriteSplittingDataSourceGroupRuleConfiguration config;
     
     private final Map<String, DataSource> dataSourceMap;
     
     private final ReadwriteSplittingRuleExceptionIdentifier exceptionIdentifier;
     
-    public ReadwriteSplittingDataSourceRuleConfigurationChecker(final String databaseName, final ReadwriteSplittingDataSourceRuleConfiguration config, final Map<String, DataSource> dataSourceMap) {
+    public ReadwriteSplittingDataSourceRuleConfigurationChecker(final String databaseName,
+                                                                final ReadwriteSplittingDataSourceGroupRuleConfiguration config, final Map<String, DataSource> dataSourceMap) {
         this.databaseName = databaseName;
         this.config = config;
         this.dataSourceMap = dataSourceMap;
@@ -62,10 +62,10 @@ public final class ReadwriteSplittingDataSourceRuleConfigurationChecker {
      * @param builtRules built rules
      */
     public void check(final Collection<String> builtWriteDataSourceNames, final Collection<String> builtReadDataSourceNames, final Collection<ShardingSphereRule> builtRules) {
-        ShardingSpherePreconditions.checkState(!Strings.isNullOrEmpty(config.getName()), () -> new MissingRequiredReadwriteSplittingDataSourceRuleNameException(databaseName));
-        ShardingSpherePreconditions.checkState(!Strings.isNullOrEmpty(config.getWriteDataSourceName()),
+        ShardingSpherePreconditions.checkNotEmpty(config.getName(), () -> new MissingRequiredReadwriteSplittingDataSourceRuleNameException(databaseName));
+        ShardingSpherePreconditions.checkNotEmpty(config.getWriteDataSourceName(),
                 () -> new MissingRequiredReadwriteSplittingActualDataSourceException(ReadwriteSplittingDataSourceType.WRITE, exceptionIdentifier));
-        ShardingSpherePreconditions.checkState(!config.getReadDataSourceNames().isEmpty(),
+        ShardingSpherePreconditions.checkNotEmpty(config.getReadDataSourceNames(),
                 () -> new MissingRequiredReadwriteSplittingActualDataSourceException(ReadwriteSplittingDataSourceType.READ, exceptionIdentifier));
         checkActualSourceNames(ReadwriteSplittingDataSourceType.WRITE, config.getWriteDataSourceName(), builtWriteDataSourceNames, builtRules);
         config.getReadDataSourceNames().forEach(each -> checkActualSourceNames(ReadwriteSplittingDataSourceType.READ, each, builtReadDataSourceNames, builtRules));

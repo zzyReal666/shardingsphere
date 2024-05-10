@@ -79,6 +79,7 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -172,6 +173,44 @@ class ShardingRuleTest {
         ruleConfig.getTables().add(duplicateTableRuleConfig);
         ruleConfig.getShardingAlgorithms().put("INLINE", new AlgorithmConfiguration("INLINE", PropertiesBuilder.build(new Property("algorithm-expression", "t_order_%{order_id % 2}"))));
         assertThrows(DuplicateSharingActualDataNodeException.class, () -> new ShardingRule(ruleConfig, Collections.emptyMap(), mock(InstanceContext.class)));
+    }
+    
+    @Test
+    void assertValidateWrongInlineShardingAlgorithmsInTableRules() {
+        ShardingRuleConfiguration ruleConfig = new ShardingRuleConfiguration();
+        ShardingTableRuleConfiguration tableRuleConfig = new ShardingTableRuleConfiguration("t_order", "ds_${0..1}.t_order_tmp_${0..1}");
+        tableRuleConfig.setTableShardingStrategy(new StandardShardingStrategyConfiguration("order_id", "order_id_inline"));
+        ruleConfig.getTables().add(tableRuleConfig);
+        ruleConfig.getShardingAlgorithms().put("order_id_inline", new AlgorithmConfiguration("INLINE", PropertiesBuilder.build(new Property("algorithm-expression", "t_order_${order_id % 2}"))));
+        assertThrows(AlgorithmInitializationException.class, () -> new ShardingRule(ruleConfig, Collections.emptyMap(), mock(InstanceContext.class)));
+    }
+    
+    @Test
+    void assertValidateInlineShardingAlgorithmsInTableRules() {
+        ShardingRuleConfiguration ruleConfig = new ShardingRuleConfiguration();
+        ShardingTableRuleConfiguration tableRuleConfig = new ShardingTableRuleConfiguration("t_order", "ds_${0..1}.t_order_${0..1}");
+        tableRuleConfig.setTableShardingStrategy(new StandardShardingStrategyConfiguration("order_id", "order_id_inline"));
+        tableRuleConfig.setDatabaseShardingStrategy(new StandardShardingStrategyConfiguration("user_id", "user_id_inline"));
+        ruleConfig.getTables().add(tableRuleConfig);
+        ShardingTableRuleConfiguration versionTableRuleConfig = new ShardingTableRuleConfiguration("t_order", "ds_${0..1}.v2_t_order_${0..1}");
+        versionTableRuleConfig.setTableShardingStrategy(new StandardShardingStrategyConfiguration("order_id", "order_id_inline"));
+        versionTableRuleConfig.setDatabaseShardingStrategy(new StandardShardingStrategyConfiguration("user_id", "user_id_inline"));
+        ruleConfig.getTables().add(versionTableRuleConfig);
+        ruleConfig.getShardingAlgorithms().put("order_id_inline", new AlgorithmConfiguration("INLINE", PropertiesBuilder.build(new Property("algorithm-expression", "t_order_${order_id % 2}"))));
+        ruleConfig.getShardingAlgorithms().put("user_id_inline", new AlgorithmConfiguration("INLINE", PropertiesBuilder.build(new Property("algorithm-expression", "ds_${user_id % 2}"))));
+        assertDoesNotThrow(() -> new ShardingRule(ruleConfig, Collections.emptyMap(), mock(InstanceContext.class, RETURNS_DEEP_STUBS)));
+    }
+    
+    @Test
+    void assertValidateInlineShardingAlgorithmsIgnoreExceptionInTableRules() {
+        ShardingRuleConfiguration ruleConfig = new ShardingRuleConfiguration();
+        ShardingTableRuleConfiguration tableRuleConfig =
+                new ShardingTableRuleConfiguration("t_order_interval", "ds_${0..1}.t_order_interval_${(2018..2050)}${(01..12).collect{m ->m.toString().padLeft(2, '0')}}");
+        tableRuleConfig.setTableShardingStrategy(new StandardShardingStrategyConfiguration("order_id", "t_order_interval_inline"));
+        ruleConfig.getTables().add(tableRuleConfig);
+        ruleConfig.getShardingAlgorithms().put("t_order_interval_inline",
+                new AlgorithmConfiguration("INLINE", PropertiesBuilder.build(new Property("algorithm-expression", "t_order_interval_${order_id.substring(0, 6)}"))));
+        assertDoesNotThrow(() -> new ShardingRule(ruleConfig, Collections.emptyMap(), mock(InstanceContext.class, RETURNS_DEEP_STUBS)));
     }
     
     @Test

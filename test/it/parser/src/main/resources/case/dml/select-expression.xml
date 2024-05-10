@@ -48,7 +48,11 @@
                     <right>
                         <binary-operation-expression start-index="114" stop-index="165">
                             <left>
-                                <function function-name="CONVERT" start-index="114" stop-index="146" text="CONVERT(VARIABLE_VALUE, UNSIGNED)" />
+                                <function function-name="CONVERT" start-index="114" stop-index="146" text="CONVERT(VARIABLE_VALUE, UNSIGNED)">
+                                    <parameter>
+                                        <column name="VARIABLE_VALUE" start-index="122" stop-index="135" />
+                                    </parameter>
+                                </function>
                             </left>
                             <operator>&gt;</operator>
                             <right>
@@ -2964,7 +2968,7 @@
             <expression-projection start-index="7" stop-index="56" text="PREDICT BY point_kmeans (FEATURES position)" alias="pos" />
         </projections>
         <from>
-            <subquery-table>
+            <subquery-table start-index="63" stop-index="96">
                 <subquery>
                     <select>
                         <projections start-index="71" stop-index="71">

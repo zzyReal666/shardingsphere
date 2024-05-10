@@ -17,7 +17,6 @@
 
 package org.apache.shardingsphere.encrypt.algorithm.standard;
 
-import com.google.common.base.Strings;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -28,6 +27,7 @@ import org.apache.shardingsphere.encrypt.spi.EncryptAlgorithmMetaData;
 import org.apache.shardingsphere.infra.algorithm.core.context.AlgorithmSQLContext;
 import org.apache.shardingsphere.infra.algorithm.core.exception.AlgorithmInitializationException;
 import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
+import org.apache.shardingsphere.infra.util.props.MultiSourceProperties;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -48,19 +48,26 @@ public final class AESEncryptAlgorithm implements EncryptAlgorithm {
     private static final String DIGEST_ALGORITHM_NAME = "digest-algorithm-name";
     
     @Getter
-    private final EncryptAlgorithmMetaData metaData = new EncryptAlgorithmMetaData(true, true, false);
+    private final EncryptAlgorithmMetaData metaData = new EncryptAlgorithmMetaData(true, true, false, getDefaultProperties());
     
     private byte[] secretKey;
     
+    private Properties getDefaultProperties() {
+        Properties result = new Properties();
+        result.setProperty(DIGEST_ALGORITHM_NAME, MessageDigestAlgorithms.SHA_1);
+        return result;
+    }
+    
     @Override
     public void init(final Properties props) {
-        secretKey = getSecretKey(props);
+        Properties multiSourceProperties = new MultiSourceProperties(props, metaData.getDefaultProps());
+        secretKey = getSecretKey(multiSourceProperties);
     }
     
     private byte[] getSecretKey(final Properties props) {
         String aesKey = props.getProperty(AES_KEY);
-        ShardingSpherePreconditions.checkState(!Strings.isNullOrEmpty(aesKey), () -> new AlgorithmInitializationException(this, "%s can not be null or empty", AES_KEY));
-        String digestAlgorithm = props.getProperty(DIGEST_ALGORITHM_NAME, MessageDigestAlgorithms.SHA_1);
+        ShardingSpherePreconditions.checkNotEmpty(aesKey, () -> new AlgorithmInitializationException(this, "%s can not be null or empty", AES_KEY));
+        String digestAlgorithm = props.getProperty(DIGEST_ALGORITHM_NAME);
         return Arrays.copyOf(DigestUtils.getDigest(digestAlgorithm.toUpperCase()).digest(aesKey.getBytes(StandardCharsets.UTF_8)), 16);
     }
     

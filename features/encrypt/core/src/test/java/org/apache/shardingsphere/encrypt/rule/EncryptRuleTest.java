@@ -17,12 +17,13 @@
 
 package org.apache.shardingsphere.encrypt.rule;
 
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.apache.shardingsphere.encrypt.api.config.EncryptRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptColumnItemRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptColumnRuleConfiguration;
 import org.apache.shardingsphere.encrypt.api.config.rule.EncryptTableRuleConfiguration;
-import org.apache.shardingsphere.encrypt.exception.metadata.MismatchedEncryptAlgorithmTypeException;
 import org.apache.shardingsphere.encrypt.exception.metadata.EncryptTableNotFoundException;
+import org.apache.shardingsphere.encrypt.exception.metadata.MismatchedEncryptAlgorithmTypeException;
 import org.apache.shardingsphere.infra.algorithm.core.config.AlgorithmConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -44,6 +45,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EncryptRuleTest {
+    
+    private static final String DIGEST_ALGORITHM_NAME = "digest-algorithm-name";
+    
+    @Test
+    void assertGetAllTableNames() {
+        assertThat(new EncryptRule("foo_db", createEncryptRuleConfiguration()).getAllTableNames(), is(Collections.singleton("t_encrypt")));
+    }
     
     @Test
     void assertFindEncryptTable() {
@@ -84,6 +92,18 @@ class EncryptRuleTest {
         pwdColumnConfig.setLikeQuery(new EncryptColumnItemRuleConfiguration("pwd_like", "like_query_test_encryptor"));
         assertTrue(pwdColumnConfig.getLikeQuery().isPresent());
         assertThat(pwdColumnConfig.getLikeQuery().get().getEncryptorName(), is("like_query_test_encryptor"));
+    }
+    
+    @Test
+    void assertAESEncryptRuleDefaultProps() {
+        EncryptRuleConfiguration defaultPropsEncryptRuleConfig = new EncryptRuleConfiguration(Collections.emptyList(),
+                Collections.singletonMap("aes_encryptor", new AlgorithmConfiguration("AES", new Properties())));
+        assertThat(defaultPropsEncryptRuleConfig.getEncryptors().get("aes_encryptor").getProps().getProperty(DIGEST_ALGORITHM_NAME), is(MessageDigestAlgorithms.SHA_1));
+        Properties props = new Properties();
+        props.put(DIGEST_ALGORITHM_NAME, MessageDigestAlgorithms.SHA_256);
+        EncryptRuleConfiguration sha256EncryptRuleConfig = new EncryptRuleConfiguration(Collections.emptyList(),
+                Collections.singletonMap("aes_encryptor", new AlgorithmConfiguration("AES", props)));
+        assertThat(sha256EncryptRuleConfig.getEncryptors().get("aes_encryptor").getProps().getProperty(DIGEST_ALGORITHM_NAME), is(MessageDigestAlgorithms.SHA_256));
     }
     
     private Map<String, AlgorithmConfiguration> getEncryptors(final AlgorithmConfiguration standardEncryptConfig, final AlgorithmConfiguration queryAssistedEncryptConfig,

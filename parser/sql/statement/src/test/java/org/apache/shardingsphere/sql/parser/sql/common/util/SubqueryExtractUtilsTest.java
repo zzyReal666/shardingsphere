@@ -69,9 +69,9 @@ class SubqueryExtractUtilsTest {
         SubqueryExpressionSegment right = new SubqueryExpressionSegment(new SubquerySegment(51, 100, subquerySelectStatement, ""));
         WhereSegment whereSegment = new WhereSegment(34, 100, new BinaryOperationExpression(40, 100, left, right, "=", "order_id = (SELECT order_id FROM t_order WHERE status = 'OK')"));
         selectStatement.setWhere(whereSegment);
-        Collection<SubquerySegment> result = SubqueryExtractUtils.getSubquerySegments(selectStatement);
-        assertThat(result.size(), is(1));
-        assertThat(result.iterator().next(), is(right.getSubquery()));
+        Collection<SubquerySegment> actual = SubqueryExtractUtils.getSubquerySegments(selectStatement);
+        assertThat(actual.size(), is(1));
+        assertThat(actual.iterator().next(), is(right.getSubquery()));
     }
     
     @Test
@@ -85,9 +85,9 @@ class SubqueryExtractUtilsTest {
         MySQLSelectStatement selectStatement = new MySQLSelectStatement();
         selectStatement.setProjections(new ProjectionsSegment(7, 79));
         selectStatement.getProjections().getProjections().add(subqueryProjectionSegment);
-        Collection<SubquerySegment> result = SubqueryExtractUtils.getSubquerySegments(selectStatement);
-        assertThat(result.size(), is(1));
-        assertThat(result.iterator().next(), is(subquerySegment));
+        Collection<SubquerySegment> actual = SubqueryExtractUtils.getSubquerySegments(selectStatement);
+        assertThat(actual.size(), is(1));
+        assertThat(actual.iterator().next(), is(subquerySegment));
     }
     
     @Test
@@ -102,11 +102,11 @@ class SubqueryExtractUtilsTest {
         MySQLSelectStatement selectStatement = new MySQLSelectStatement();
         selectStatement.setProjections(new ProjectionsSegment(7, 16));
         selectStatement.getProjections().getProjections().add(new ColumnProjectionSegment(new ColumnSegment(7, 16, new IdentifierValue("order_id"))));
-        SubqueryTableSegment subqueryTableSegment = new SubqueryTableSegment(new SubquerySegment(23, 71, subquery, ""));
+        SubqueryTableSegment subqueryTableSegment = new SubqueryTableSegment(0, 0, new SubquerySegment(23, 71, subquery, ""));
         selectStatement.setFrom(subqueryTableSegment);
-        Collection<SubquerySegment> result = SubqueryExtractUtils.getSubquerySegments(selectStatement);
-        assertThat(result.size(), is(1));
-        assertThat(result.iterator().next(), is(subqueryTableSegment.getSubquery()));
+        Collection<SubquerySegment> actual = SubqueryExtractUtils.getSubquerySegments(selectStatement);
+        assertThat(actual.size(), is(1));
+        assertThat(actual.iterator().next(), is(subqueryTableSegment.getSubquery()));
     }
     
     @Test
@@ -140,14 +140,14 @@ class SubqueryExtractUtilsTest {
         ColumnSegment columnSegment2 = new ColumnSegment(203, 213, new IdentifierValue("order_id"));
         BinaryOperationExpression orderIdCondition = new BinaryOperationExpression(190, 213, columnSegment1, columnSegment2, "=", "o.order_id = oi.order_id");
         from.setCondition(orderIdCondition);
-        SubqueryTableSegment leftSubquerySegment = new SubqueryTableSegment(new SubquerySegment(26, 92, subqueryLeftSelectStatement, ""));
-        SubqueryTableSegment rightSubquerySegment = new SubqueryTableSegment(new SubquerySegment(104, 175, subqueryRightSelectStatement, ""));
+        SubqueryTableSegment leftSubquerySegment = new SubqueryTableSegment(0, 0, new SubquerySegment(26, 92, subqueryLeftSelectStatement, ""));
+        SubqueryTableSegment rightSubquerySegment = new SubqueryTableSegment(0, 0, new SubquerySegment(104, 175, subqueryRightSelectStatement, ""));
         from.setLeft(leftSubquerySegment);
         from.setRight(rightSubquerySegment);
         selectStatement.setFrom(from);
-        Collection<SubquerySegment> result = SubqueryExtractUtils.getSubquerySegments(selectStatement);
-        assertThat(result.size(), is(2));
-        Iterator<SubquerySegment> iterator = result.iterator();
+        Collection<SubquerySegment> actual = SubqueryExtractUtils.getSubquerySegments(selectStatement);
+        assertThat(actual.size(), is(2));
+        Iterator<SubquerySegment> iterator = actual.iterator();
         assertThat(iterator.next(), is(leftSubquerySegment.getSubquery()));
         assertThat(iterator.next(), is(rightSubquerySegment.getSubquery()));
     }
@@ -155,9 +155,9 @@ class SubqueryExtractUtilsTest {
     @Test
     void assertGetSubquerySegmentsWithMultiNestedSubquery() {
         SelectStatement selectStatement = new MySQLSelectStatement();
-        selectStatement.setFrom(new SubqueryTableSegment(createSubquerySegmentForFrom()));
-        Collection<SubquerySegment> result = SubqueryExtractUtils.getSubquerySegments(selectStatement);
-        assertThat(result.size(), is(2));
+        selectStatement.setFrom(new SubqueryTableSegment(0, 0, createSubquerySegmentForFrom()));
+        Collection<SubquerySegment> actual = SubqueryExtractUtils.getSubquerySegments(selectStatement);
+        assertThat(actual.size(), is(2));
     }
     
     private SubquerySegment createSubquerySegmentForFrom() {

@@ -19,11 +19,11 @@ package org.apache.shardingsphere.mode.manager.cluster.coordinator.subscriber;
 
 import com.google.common.eventbus.Subscribe;
 import org.apache.shardingsphere.infra.instance.ComputeNodeInstance;
-import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
+import org.apache.shardingsphere.infra.metadata.database.schema.QualifiedDataSource;
 import org.apache.shardingsphere.infra.rule.attribute.datasource.StaticDataSourceRuleAttribute;
 import org.apache.shardingsphere.infra.state.datasource.DataSourceState;
 import org.apache.shardingsphere.infra.state.datasource.DataSourceStateManager;
-import org.apache.shardingsphere.mode.event.storage.StorageNodeDataSourceChangedEvent;
 import org.apache.shardingsphere.mode.manager.ContextManager;
 import org.apache.shardingsphere.mode.manager.cluster.coordinator.RegistryCenter;
 import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.status.cluster.event.ClusterLockDeletedEvent;
@@ -59,15 +59,15 @@ public final class StateChangedSubscriber {
      */
     @Subscribe
     public synchronized void renew(final StorageNodeChangedEvent event) {
-        ShardingSphereMetaData metaData = contextManager.getMetaDataContexts().getMetaData();
-        if (!metaData.containsDatabase(event.getQualifiedDatabase().getDatabaseName())) {
+        QualifiedDataSource qualifiedDataSource = event.getQualifiedDataSource();
+        if (!contextManager.getMetaDataContexts().getMetaData().containsDatabase(qualifiedDataSource.getDatabaseName())) {
             return;
         }
-        for (StaticDataSourceRuleAttribute each : metaData.getDatabase(event.getQualifiedDatabase().getDatabaseName()).getRuleMetaData().getAttributes(StaticDataSourceRuleAttribute.class)) {
-            each.updateStatus(new StorageNodeDataSourceChangedEvent(event.getQualifiedDatabase(), event.getDataSource()));
+        DataSourceStateManager.getInstance().updateState(qualifiedDataSource, DataSourceState.valueOf(event.getStatus().getStatus().name()));
+        ShardingSphereDatabase database = contextManager.getMetaDataContexts().getMetaData().getDatabase(qualifiedDataSource.getDatabaseName());
+        for (StaticDataSourceRuleAttribute each : database.getRuleMetaData().getAttributes(StaticDataSourceRuleAttribute.class)) {
+            each.updateStatus(qualifiedDataSource, event.getStatus().getStatus());
         }
-        DataSourceStateManager.getInstance().updateState(
-                event.getQualifiedDatabase().getDatabaseName(), event.getQualifiedDatabase().getDataSourceName(), DataSourceState.valueOf(event.getDataSource().getStatus().name()));
     }
     
     /**

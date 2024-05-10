@@ -708,8 +708,10 @@ public abstract class PostgreSQLStatementVisitor extends PostgreSQLStatementPars
     
     @Override
     public ASTNode visitOptOnConflict(final OptOnConflictContext ctx) {
-        SetClauseListContext setClauseListContext = ctx.setClauseList();
-        Collection<ColumnAssignmentSegment> assignments = ((SetAssignmentSegment) visit(setClauseListContext)).getAssignments();
+        Collection<ColumnAssignmentSegment> assignments = new LinkedList<>();
+        if (null != ctx.setClauseList()) {
+            assignments = ((SetAssignmentSegment) visit(ctx.setClauseList())).getAssignments();
+        }
         return new OnDuplicateKeyColumnsSegment(ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex(), assignments);
     }
     
@@ -1161,7 +1163,7 @@ public abstract class PostgreSQLStatementVisitor extends PostgreSQLStatementPars
             PostgreSQLSelectStatement select = (PostgreSQLSelectStatement) visit(ctx.selectWithParens());
             SubquerySegment subquery = new SubquerySegment(ctx.selectWithParens().start.getStartIndex(), ctx.selectWithParens().stop.getStopIndex(), select, getOriginalText(ctx.selectWithParens()));
             AliasSegment alias = null == ctx.aliasClause() ? null : (AliasSegment) visit(ctx.aliasClause());
-            SubqueryTableSegment result = new SubqueryTableSegment(subquery);
+            SubqueryTableSegment result = new SubqueryTableSegment(ctx.start.getStartIndex(), ctx.stop.getStopIndex(), subquery);
             result.setAlias(alias);
             return result;
         }

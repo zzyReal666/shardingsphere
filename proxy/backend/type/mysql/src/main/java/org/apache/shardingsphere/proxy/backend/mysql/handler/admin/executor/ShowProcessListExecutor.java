@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 /**
  * Show process list executor.
  */
-@SuppressWarnings("UnstableApiUsage")
 public final class ShowProcessListExecutor implements DatabaseAdminQueryExecutor {
     
     private final boolean showFullProcesslist;
@@ -68,6 +67,7 @@ public final class ShowProcessListExecutor implements DatabaseAdminQueryExecutor
      *
      * @param event show process list response event
      */
+    @SuppressWarnings("unused")
     @Subscribe
     public void receiveProcessListData(final ShowProcessListResponseEvent event) {
         processes = event.getProcesses();
@@ -100,9 +100,9 @@ public final class ShowProcessListExecutor implements DatabaseAdminQueryExecutor
         if (process.isIdle()) {
             rowValues.add("");
         } else {
-            int processDoneCount = process.getCompletedUnitCount();
+            int processDoneCount = process.getCompletedUnitCount().get();
             String statePrefix = "Executing ";
-            rowValues.add(statePrefix + processDoneCount + "/" + process.getTotalUnitCount());
+            rowValues.add(statePrefix + processDoneCount + "/" + process.getTotalUnitCount().get());
             sql = process.getSql();
         }
         if (null != sql && sql.length() > 100 && !showFullProcesslist) {
