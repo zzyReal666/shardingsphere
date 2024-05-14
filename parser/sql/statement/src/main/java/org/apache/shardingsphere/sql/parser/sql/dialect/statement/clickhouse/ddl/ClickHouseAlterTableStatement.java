@@ -15,22 +15,11 @@
  * limitations under the License.
  */
 
-grammar TCLStatement;
+package org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.ddl;
 
-import BaseRule;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.AlterTableStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.ClickHouseStatement;
 
-setTransaction
-    : SET TRANSACTION ISOLATION LEVEL levelOfIsolation
-    ;
 
-commit
-    : COMMIT
-    ;
-
-rollback
-    : ROLLBACK
-    ;
-
-levelOfIsolation
-    : READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ| SERIALIZABLE
-    ;
+public final class ClickHouseAlterTableStatement extends AlterTableStatement implements ClickHouseStatement {
+}

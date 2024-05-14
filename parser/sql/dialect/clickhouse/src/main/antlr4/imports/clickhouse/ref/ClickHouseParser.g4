@@ -2,12 +2,19 @@ parser grammar ClickHouseParser;
 
 options {
     tokenVocab = ClickHouseLexer;
+        language = Java;
+
 }
+
+@parser::header {
+    import java.util.HashSet;
+    import java.util.Set;
+}
+
 
 // Top-level statements
 
 queryStmt: query (INTO OUTFILE STRING_LITERAL)? (FORMAT identifierOrNull)? (SEMICOLON)? | insertStmt;
-
 query
     : alterStmt     // DDL
     | attachStmt    // DDL
@@ -106,21 +113,16 @@ checkStmt: CHECK TABLE tableIdentifier partitionClause?;
 
 createStmt
     : (ATTACH | CREATE) DATABASE (IF NOT EXISTS)? databaseIdentifier clusterClause? engineExpr?                                                                                       # CreateDatabaseStmt
-    | (ATTACH | CREATE (OR REPLACE)? | REPLACE) DICTIONARY (IF NOT EXISTS)? tableIdentifier uuidClause? clusterClause?                                          # CreateDictionaryStmt
+    | (ATTACH | CREATE (OR REPLACE)? | REPLACE) DICTIONARY (IF NOT EXISTS)? tableIdentifier uuidClause? clusterClause? dictionarySchemaClause dictionaryEngineClause                                          # CreateDictionaryStmt
     | (ATTACH | CREATE) LIVE VIEW (IF NOT EXISTS)? tableIdentifier uuidClause? clusterClause? (WITH TIMEOUT DECIMAL_LITERAL?)? destinationClause? tableSchemaClause? subqueryClause   # CreateLiveViewStmt
-    | (ATTACH | CREATE) MATERIALIZED VIEW (IF NOT EXISTS)? tableIdentifier uuidClause? clusterClause? tableSchemaClause? (destinationClause ) subqueryClause  # CreateMaterializedViewStmt
-    | (ATTACH | CREATE (OR REPLACE)? | REPLACE) TEMPORARY? TABLE (IF NOT EXISTS)? tableIdentifier uuidClause? clusterClause? tableSchemaClause?  subqueryClause?                                 # CreateTableStmt
+    | (ATTACH | CREATE) MATERIALIZED VIEW (IF NOT EXISTS)? tableIdentifier uuidClause? clusterClause? tableSchemaClause? (destinationClause | engineClause POPULATE?) subqueryClause  # CreateMaterializedViewStmt
+    | (ATTACH | CREATE (OR REPLACE)? | REPLACE) TEMPORARY? TABLE (IF NOT EXISTS)? tableIdentifier uuidClause? clusterClause? tableSchemaClause? engineClause? subqueryClause?                                 # CreateTableStmt
     | (ATTACH | CREATE) (OR REPLACE)? VIEW (IF NOT EXISTS)? tableIdentifier uuidClause? clusterClause? tableSchemaClause? subqueryClause                                              # CreateViewStmt
     ;
 
-//dictionarySchemaClause: LPAREN dictionaryAttrDfnt (COMMA dictionaryAttrDfnt)* RPAREN;
+dictionarySchemaClause: LPAREN dictionaryAttrDfnt (COMMA dictionaryAttrDfnt)* RPAREN;
 //dictionaryAttrDfnt
-////locals [std::set<std::string> attrs]:
-//locals [static java.util.HashSet<String> attrs]
-//@init{
-//dictionaryAttrDfntClauseContest.attrs = new java.util.HashSet<String>();
-//}
-//:
+//locals [std::set<std::string> attrs]:
 //    identifier columnTypeExpr
 //    ( {!$attrs.count("default")}?      DEFAULT literal       {$attrs.insert("default");}
 //    | {!$attrs.count("expression")}?   EXPRESSION columnExpr {$attrs.insert("expression");}
@@ -129,13 +131,17 @@ createStmt
 //    | {!$attrs.count("is_object_id")}? IS_OBJECT_ID          {$attrs.insert("is_object_id");}
 //    )*
 //    ;
+
+dictionaryAttrDfnt : identifier columnTypeExpr (attribute)*;
+
+attribute : DEFAULT literal
+          | EXPRESSION columnExpr
+          | HIERARCHICAL
+          | INJECTIVE
+          | IS_OBJECT_ID
+          ;
 //dictionaryEngineClause
-////locals [std::set<std::string> clauses]:
-//locals [static java.util.HashSet<String> clauses]
-//@init{
-//dictionaryEngineClauseContest.clauses = new java.util.HashSet<String>();
-//}
-//:
+//locals [std::set<std::string> clauses]:
 //    dictionaryPrimaryKeyClause?
 //    ( {!$clauses.count("source")}? sourceClause {$clauses.insert("source");}
 //    | {!$clauses.count("lifetime")}? lifetimeClause {$clauses.insert("lifetime");}
@@ -144,6 +150,13 @@ createStmt
 //    | {!$clauses.count("settings")}? dictionarySettingsClause {$clauses.insert("settings");}
 //    )*
 //    ;
+dictionaryEngineClause : dictionaryPrimaryKeyClause? (sourceClause
+                                                             | lifetimeClause
+                                                             | layoutClause
+                                                             | rangeClause
+                                                             | dictionarySettingsClause)*;
+
+
 dictionaryPrimaryKeyClause: PRIMARY KEY columnExprList;
 dictionaryArgExpr: identifier (identifier (LPAREN RPAREN)? | literal);
 sourceClause: SOURCE LPAREN identifier LPAREN dictionaryArgExpr* RPAREN RPAREN;
@@ -165,12 +178,7 @@ tableSchemaClause
     | AS tableFunctionExpr                                      # SchemaAsFunctionClause
     ;
 //engineClause
-////locals [std::set<std::string> clauses]:
-//locals [static java.util.HashSet<String> clauses]
-//@init{
-//engineClauseContest.clauses = new java.util.HashSet<String>();
-//}
-//:
+//locals [std::set<std::string> clauses]:
 //    engineExpr
 //    ( {!$clauses.count("orderByClause")}?     orderByClause     {$clauses.insert("orderByClause");}
 //    | {!$clauses.count("partitionByClause")}? partitionByClause {$clauses.insert("partitionByClause");}
@@ -180,6 +188,14 @@ tableSchemaClause
 //    | {!$clauses.count("settingsClause")}?    settingsClause    {$clauses.insert("settingsClause");}
 //    )*
 //    ;
+//
+engineClause : engineExpr ( orderByClause
+                                  | partitionByClause
+                                  | primaryKeyClause
+                                  | sampleByClause
+                                  | ttlClause
+                                  | settingsClause)*;
+
 partitionByClause: PARTITION BY columnExpr;
 primaryKeyClause: PRIMARY KEY columnExpr;
 sampleByClause: SAMPLE BY columnExpr;
@@ -235,7 +251,7 @@ insertStmt: INSERT INTO TABLE? (tableIdentifier | FUNCTION tableFunctionExpr) co
 columnsClause: LPAREN nestedIdentifier (COMMA nestedIdentifier)* RPAREN;
 dataClause
     : FORMAT identifier              # DataClauseFormat
-    | VALUES                         # DataClauseValues
+    | VALUES LPAREN nestedIdentifier (COMMA nestedIdentifier)* RPAREN                        # DataClauseValues
     | selectUnionStmt SEMICOLON? EOF # DataClauseSelect
     ;
 
@@ -478,7 +494,6 @@ tableArgExpr
     | tableFunctionExpr
     | literal
     ;
-
 
 // Databases
 

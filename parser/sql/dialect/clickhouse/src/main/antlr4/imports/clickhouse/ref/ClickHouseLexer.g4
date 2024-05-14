@@ -3,6 +3,7 @@ lexer grammar ClickHouseLexer;
 // NOTE: don't forget to add new keywords to the parser rule "keyword"!
 
 // Keywords
+
 ADD: A D D;
 AFTER: A F T E R;
 ALIAS: A L I A S;
@@ -90,7 +91,7 @@ INSERT: I N S E R T;
 INTERVAL: I N T E R V A L;
 INTO: I N T O;
 IS: I S;
-IS_OBJECT_ID: I S UNDERSCORE O B J E C T UNDERSCORE I D;
+IS_OBJECT_ID: I S UL_ O B J E C T UL_ I D;
 JOIN: J O I N;
 KEY: K E Y;
 KILL: K I L L;
@@ -196,11 +197,10 @@ YEAR: Y E A R | Y Y Y Y;
 JSON_FALSE: 'false';
 JSON_TRUE: 'true';
 
-
 // Tokens
 
 IDENTIFIER
-    : (LETTER | UNDERSCORE) (LETTER | UNDERSCORE | DEC_DIGIT)*
+    : (LETTER | UL_) (LETTER | UL_ | DEC_DIGIT)*
     | BACKQUOTE ( ~([\\`]) | (BACKSLASH .) | (BACKQUOTE BACKQUOTE) )* BACKQUOTE
     | QUOTE_DOUBLE ( ~([\\"]) | (BACKSLASH .) | (QUOTE_DOUBLE QUOTE_DOUBLE) )* QUOTE_DOUBLE
     ;
@@ -281,10 +281,12 @@ RBRACKET: ']';
 RPAREN: ')';
 SEMICOLON: ';';
 SLASH: '/';
-UNDERSCORE: '_';
+UL_: '_';
+
+
 
 // Comments and whitespace
 
-MULTI_LINE_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
-SINGLE_LINE_COMMENT: '--' ~('\n'|'\r')* ('\n' | '\r' | EOF) -> channel(HIDDEN);
-WHITESPACE: [ \u000B\u000C\t\r\n] -> channel(HIDDEN);  // '\n' can be part of multiline single query
+MULTI_LINE_COMMENT: '/*' .*? '*/' -> skip;
+SINGLE_LINE_COMMENT: '--' ~('\n'|'\r')* ('\n' | '\r' | EOF) -> skip;
+WHITESPACE: [ \u000B\u000C\t\r\n] -> skip;  // '\n' can be part of multiline single query

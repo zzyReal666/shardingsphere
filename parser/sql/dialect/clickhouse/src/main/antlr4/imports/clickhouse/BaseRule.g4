@@ -17,7 +17,12 @@
 
 grammar BaseRule;
 
-import Symbol, Keyword, SQL92Keyword, Literals;
+import LexerSymbol, LexerKeyword, LexerClickHouseKeyword, LexerLiterals;
+
+
+
+cluster: ON CLUSTER identifier;
+
 
 parameterMarker
     : QUESTION_
@@ -63,26 +68,26 @@ nullValueLiterals
     ;
 
 identifier
-    : IDENTIFIER_ | unreservedWord
+    : IDENTIFIER_
+    | unreservedWord
+    | interval
     ;
 
 unreservedWord
-    : ADA
-    | C92 | CATALOG_NAME | CHARACTER_SET_CATALOG | CHARACTER_SET_NAME | CHARACTER_SET_SCHEMA
-    | CLASS_ORIGIN | COBOL | COLLATION_CATALOG | COLLATION_NAME | COLLATION_SCHEMA
-    | COLUMN_NAME | COMMAND_FUNCTION | COMMITTED | CONDITION_NUMBER | CONNECTION_NAME
-    | CONSTRAINT_CATALOG | CONSTRAINT_NAME | CONSTRAINT_SCHEMA | CURSOR_NAME
-    | DATA | DATETIME_INTERVAL_CODE | DATETIME_INTERVAL_PRECISION | DYNAMIC_FUNCTION
-    | FORTRAN
-    | LENGTH
-    | MESSAGE_LENGTH | MESSAGE_OCTET_LENGTH | MESSAGE_TEXT | MORE92 | MUMPS
-    | NAME | NULLABLE | NUMBER
-    | PASCAL | PLI
-    | REPEATABLE | RETURNED_LENGTH | RETURNED_OCTET_LENGTH | RETURNED_SQLSTATE | ROW_COUNT
-    | SCALE | SCHEMA_NAME | SERIALIZABLE | SERVER_NAME | SUBCLASS_ORIGIN
-    | TABLE_NAME | TYPE
-    | UNCOMMITTED | UNNAMED
-    ;
+    : AFTER | ALIAS | ALL | ALTER | AND | ANTI | ANY | ARRAY | AS | ASCENDING | ASOF | AST | ASYNC | ATTACH | BETWEEN | BOTH | BY | CASE
+        | CAST | CHECK | CLEAR | CLUSTER | CODEC | COLLATE | COLUMN | COMMENT | CONSTRAINT | CREATE | CROSS | CUBE | CURRENT | DATABASE
+        | DATABASES | DATE | DEDUPLICATE | DEFAULT | DELAY | DELETE | DESCRIBE | DESC | DESCENDING | DETACH | DICTIONARIES | DICTIONARY | DISK
+        | DISTINCT | DISTRIBUTED | DROP | ELSE | END | ENGINE | EVENTS | EXISTS | EXPLAIN | EXPRESSION | EXTRACT | FETCHES | FINAL | FIRST
+        | FLUSH | FOR | FOLLOWING | FOR | FORMAT | FREEZE | FROM | FULL | FUNCTION | GLOBAL | GRANULARITY | GROUP | HAVING | HIERARCHICAL | ID
+        | IF | ILIKE | IN | INDEX | INJECTIVE | INNER | INSERT | INTERVAL | INTO | IS | IS_OBJECT_ID | JOIN | JSON_FALSE | JSON_TRUE | KEY
+        | KILL | LAST | LAYOUT | LEADING | LEFT | LIFETIME | LIKE | LIMIT | LIVE | LOCAL | LOGS | MATERIALIZE | MATERIALIZED | MAX | MERGES
+        | MIN | MODIFY | MOVE | MUTATION | NO | NOT | NULLS | OFFSET | ON | OPTIMIZE | OR | ORDER | OUTER | OUTFILE | OVER | PARTITION
+        | POPULATE | PRECEDING | PREWHERE | PRIMARY | RANGE | RELOAD | REMOVE | RENAME | REPLACE | REPLICA | REPLICATED | RIGHT | ROLLUP | ROW
+        | ROWS | SAMPLE | SELECT | SEMI | SENDS | SET | SETTINGS | SHOW | SOURCE | START | STOP | SUBSTRING | SYNC | SYNTAX | SYSTEM | TABLE
+        | TABLES | TEMPORARY | TEST | THEN | TIES | TIMEOUT | TIMESTAMP | TOTALS | TRAILING | TRIM | TRUNCATE | TO | TOP | TTL | TYPE
+        | UNBOUNDED | UNION | UPDATE | USE | USING | UUID | VALUES | VIEW | VOLUME | WATCH | WHEN | WHERE | WINDOW | WITH
+        ;
+interval: SECOND | MINUTE | HOUR | DAY | WEEK | MONTH | QUARTER | YEAR;
 
 variable
     : (AT_? AT_)? (GLOBAL | LOCAL)? DOT_? identifier
@@ -150,7 +155,7 @@ notOperator
     ;
 
 booleanPrimary
-    : booleanPrimary IS NOT? (TRUE | FALSE | UNKNOWN | NULL)
+    : booleanPrimary IS NOT? (TRUE | FALSE  | NULL)
     | booleanPrimary SAFE_EQ_ predicate
     | booleanPrimary comparisonOperator predicate
     | booleanPrimary comparisonOperator (ALL | ANY) subquery
@@ -196,7 +201,6 @@ simpleExpr
     | LP_ expr (COMMA_ expr)* RP_
     | EXISTS? subquery
     | LBE_ identifier expr RBE_
-    | matchExpression
     | caseExpression
     | intervalExpression
     ;
@@ -218,15 +222,11 @@ distinct
     ;
 
 specialFunction
-    : castFunction | convertFunction | positionFunction | substringFunction | extractFunction | trimFunction
+    : castFunction | positionFunction | substringFunction | extractFunction | trimFunction
     ;
 
 castFunction
     : CAST LP_ (expr | NULL) AS dataType RP_
-    ;
-
-convertFunction
-    : CONVERT LP_ expr USING identifier RP_
     ;
 
 positionFunction
@@ -250,12 +250,9 @@ regularFunction
     ;
 
 regularFunctionName
-    : identifier | IF | CURRENT_TIMESTAMP | LOCALTIME | LOCALTIMESTAMP | INTERVAL
+    : identifier | IF  | LOCALTIME | LOCALTIMESTAMP | INTERVAL
     ;
 
-matchExpression
-    : literals MATCH UNIQUE? (PARTIAL | FULL)  subquery
-    ;
 
 caseExpression
     : CASE simpleExpr? caseWhen+ caseElse? END
@@ -290,13 +287,19 @@ orderByItem
     ;
 
 dataType
-    : dataTypeName dataTypeLength? characterSet? collateClause? | dataTypeName LP_ STRING_ (COMMA_ STRING_)* RP_ characterSet? collateClause?
+    : dataTypeName dataTypeLength? characterSet? collateClause?
+    | dataTypeName LP_ STRING_ (COMMA_ STRING_)* RP_ characterSet? collateClause?
     ;
 
 dataTypeName
-    : CHARACTER | CHARACTER VARYING | NATIONAL CHARACTER | NATIONAL CHARACTER VARYING | CHAR | VARCHAR | NCHAR
-    | NATIONAL CHAR | NATIONAL CHAR VARYING | BIT | BIT VARYING | NUMERIC | DECIMAL | DEC | INTEGER | SMALLINT
-    | FLOAT | REAL | DOUBLE PRECISION | DATE | TIME | TIMESTAMP | INTERVAL | TIME WITH TIME ZONE | TIMESTAMP WITH TIME ZONE
+    :UINT8 | UINT16 | UINT32 | UINT64 | INT8 | INT16 | INT32 | INT64 | FLOAT32 | FLOAT64
+    |STRING | FIXED_STRING
+    | DATE | DATETIME | DATETIME64
+    | ENUM8 | ENUM16
+    | UUID
+    | ARRAY | TUPLE
+    | IPV4 | IPV6 | NESTED
+    | NULLABLE
     | identifier
     ;
 
@@ -316,6 +319,4 @@ ignoredIdentifier
     : identifier (DOT_ identifier)?
     ;
 
-dropBehaviour
-    : (CASCADE | RESTRICT)?
-    ;
+

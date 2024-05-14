@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-lexer grammar Alphabet;
+lexer grammar LexerAlphabet;
 
 FOR_GENERATOR: 'DO NOT MATCH ANY THING, JUST FOR GENERATOR';
 
@@ -47,7 +47,5 @@ fragment Y:   [Yy];
 fragment Z:   [Zz];
 fragment UL_: '_';
 
-fragment LETTER: [a-zA-Z];
-fragment OCT_DIGIT: [0-7];
-fragment DEC_DIGIT: [0-9];
-fragment HEX_DIGIT: [0-9a-fA-F];
+
+

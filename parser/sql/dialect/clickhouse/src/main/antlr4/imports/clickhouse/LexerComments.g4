@@ -15,35 +15,11 @@
  * limitations under the License.
  */
 
-lexer grammar Literals;
+lexer grammar LexerComments;
 
-import Alphabet, Symbol;
+import LexerSymbol;
 
-IDENTIFIER_
-    : [A-Za-z_$0-9\u0080-\uFFFF]*?[A-Za-z_$\u0080-\uFFFF]+?[A-Za-z_$0-9\u0080-\uFFFF]*
-    |  DQ_ ~'"'+ DQ_
-    ;
+MULTI_LINE_COMMENT: '/*' .*? '*/' -> skip;
+SINGLE_LINE_COMMENT: '--' ~('\n'|'\r')* ('\n' | '\r' | EOF) -> skip;
+WHITESPACE: [ \u000B\u000C\t\r\n] -> skip;  // '\n' can be part of multiline single query
 
-STRING_ 
-    : (SQ_ ('\\'. | '\'\'' | ~('\'' | '\\'))* SQ_)
-    ;
-
-NUMBER_
-    : INT_? DOT_? INT_ (E (PLUS_ | MINUS_)? INT_)?
-    ;
-
-HEX_DIGIT_
-    : '0x' HEX_+ | 'X' SQ_ HEX_+ SQ_
-    ;
-
-BIT_NUM_
-    : '0b' ('0' | '1')+ | B SQ_ ('0' | '1')+ SQ_
-    ;
-
-fragment INT_
-    : [0-9]+
-    ;
-
-fragment HEX_
-    : [0-9a-fA-F]
-    ;

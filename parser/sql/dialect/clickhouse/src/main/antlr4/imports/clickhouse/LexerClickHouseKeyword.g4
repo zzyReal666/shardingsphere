@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-lexer grammar ClickHouseKeyword;
+lexer grammar LexerClickHouseKeyword;
 
-import Alphabet;
+import LexerAlphabet, LexerKeyword;
+
 
 ADD: A D D;
 AFTER: A F T E R;
@@ -209,5 +210,56 @@ WINDOW: W I N D O W;
 WITH: W I T H;
 YEAR: Y E A R | Y Y Y Y;
 
+ESCAPE
+    : E S C A P E
+    ;
+
 JSON_FALSE: 'false';
 JSON_TRUE: 'true';
+
+
+//dataType
+// Numeric Types
+UINT8: 'UInt8';
+UINT16: 'UInt16';
+UINT32: 'UInt32';
+UINT64: 'UInt64';
+INT8: 'Int8';
+INT16: 'Int16';
+INT32: 'Int32';
+INT64: 'Int64';
+FLOAT32: 'Float32';
+FLOAT64: 'Float64';
+DECIMAL: 'Decimal';
+
+// String Types
+STRING: 'String';
+FIXED_STRING: 'FixedString';
+
+// Date and Time Types
+//DATE: 'Date';
+DATETIME: 'DateTime';
+DATETIME64: 'DateTime64';
+
+// Enum Types
+ENUM8: 'Enum8';
+ENUM16: 'Enum16';
+
+// UUID Type
+//UUID: 'UUID';
+
+// Array Type
+//ARRAY: 'Array';
+
+// Tuple Type
+TUPLE: 'Tuple';
+
+// IPv4 and IPv6 Types
+IPV4: 'IPv4';
+IPV6: 'IPv6';
+
+// Nested Types
+NESTED: 'Nested';
+
+// Nullable Types
+NULLABLE: 'Nullable';

@@ -24,28 +24,28 @@ insert
     ;
 
 insertValuesClause
-    : columnNames? (VALUES | VALUE) assignmentValues (COMMA_ assignmentValues)*
+    : columnNames? (VALUES ) assignmentValues (COMMA_ assignmentValues)*
     ;
 
 insertSelectClause
     : columnNames? select
     ;
 
-update
-    : UPDATE tableReferences setAssignmentsClause whereClause?
+assignmentValues
+    : LP_ assignmentValue (COMMA_ assignmentValue)* RP_
+    | LP_ RP_
     ;
 
-assignment
-    : columnName EQ_ VALUES? LP_? assignmentValue RP_?
+update
+    : UPDATE tableReferences setAssignmentsClause whereClause?
     ;
 
 setAssignmentsClause
     : SET assignment (COMMA_ assignment)*
     ;
 
-assignmentValues
-    : LP_ assignmentValue (COMMA_ assignmentValue)* RP_
-    | LP_ RP_
+assignment
+    : columnName EQ_ VALUES? LP_? assignmentValue RP_?
     ;
 
 assignmentValue
@@ -57,8 +57,12 @@ blobValue
     ;
 
 delete
-    : DELETE singleTableClause whereClause?
+    :
+//    DELETE singleTableClause whereClause?
+    | ALTER TABLE tableName cluster? DELETE whereClause?
     ;
+
+
 
 singleTableClause
     : FROM tableName (AS? alias)?

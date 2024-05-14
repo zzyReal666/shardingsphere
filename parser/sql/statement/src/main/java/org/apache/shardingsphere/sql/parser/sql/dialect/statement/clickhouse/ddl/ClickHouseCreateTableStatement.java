@@ -15,11 +15,23 @@
  * limitations under the License.
  */
 
-lexer grammar Comments;
+package org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.ddl;
 
-import Symbol;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.CreateTableStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.ClickHouseStatement;
+
+@RequiredArgsConstructor
+@Getter
+@Setter
+public final class  ClickHouseCreateTableStatement extends CreateTableStatement implements ClickHouseStatement {
+
+    private SimpleTableSegment uuidClause;
+    private SimpleTableSegment clusterClause;
+    private SimpleTableSegment tableSchemaClause;
 
 
-MULTI_LINE_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
-SINGLE_LINE_COMMENT: '--' ~('\n'|'\r')* ('\n' | '\r' | EOF) -> channel(HIDDEN);
-WHITESPACE: [ \u000B\u000C\t\r\n] -> channel(HIDDEN);  // '\n' can be part of multiline single query
+}

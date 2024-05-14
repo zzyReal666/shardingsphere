@@ -15,35 +15,10 @@
  * limitations under the License.
  */
 
-lexer grammar Symbol;
+package org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.ddl;
 
-ARROW: '->';
-ASTERISK: '*';
-BACKQUOTE: '`';
-BACKSLASH: '\\';
-COLON: ':';
-COMMA: ',';
-CONCAT: '||';
-DASH: '-';
-DOT: '.';
-EQ_DOUBLE: '==';
-EQ_SINGLE: '=';
-GE: '>=';
-GT: '>';
-LBRACE: '{';
-LBRACKET: '[';
-LE: '<=';
-LPAREN: '(';
-LT: '<';
-NOT_EQ: '!=' | '<>';
-PERCENT: '%';
-PLUS: '+';
-QUERY: '?';
-QUOTE_DOUBLE: '"';
-QUOTE_SINGLE: '\'';
-RBRACE: '}';
-RBRACKET: ']';
-RPAREN: ')';
-SEMICOLON: ';';
-SLASH: '/';
-UNDERSCORE: '_';
+import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.DropTableStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.ClickHouseStatement;
+
+public final class ClickHouseDropTableStatement extends DropTableStatement implements ClickHouseStatement {
+}
