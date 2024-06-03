@@ -35,11 +35,6 @@ public final class DorisDatabaseType implements DatabaseType {
     }
     
     @Override
-    public Optional<DatabaseType> getTrunkDatabaseType() {
-        return Optional.of(TypedSPILoader.getService(DatabaseType.class, "MySQL"));
-    }
-    
-    @Override
     public String getType() {
         return "Doris";
     }

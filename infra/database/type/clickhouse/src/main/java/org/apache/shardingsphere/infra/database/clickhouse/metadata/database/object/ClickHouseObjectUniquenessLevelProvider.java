@@ -15,25 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order;
+package org.apache.shardingsphere.infra.database.clickhouse.metadata.database.object;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.apache.shardingsphere.sql.parser.sql.common.segment.SQLSegment;
-import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.item.OrderByItemSegment;
-
-import java.util.Collection;
+import org.apache.shardingsphere.infra.database.core.metadata.database.object.DialectObjectUniquenessLevelProvider;
 
 /**
- * Order by segment.
+ * MySQL object uniqueness level provider.
  */
-@RequiredArgsConstructor
-@Getter
-public final class OrderBySegment implements SQLSegment    {
+public class ClickHouseObjectUniquenessLevelProvider implements DialectObjectUniquenessLevelProvider {
     
-    private final int startIndex;
+    @Override
+    public UniquenessLevel getIndexUniquenessLevel() {
+        return UniquenessLevel.TABLE_LEVEL;
+    }
     
-    private final int stopIndex;
-    
-    private final Collection<OrderByItemSegment> orderByItems;
+    @Override
+    public String getDatabaseType() {
+        return "ClickHouse";
+    }
 }

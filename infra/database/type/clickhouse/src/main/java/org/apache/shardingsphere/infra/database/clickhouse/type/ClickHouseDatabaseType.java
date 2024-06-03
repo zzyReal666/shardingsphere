@@ -36,11 +36,6 @@ public final class ClickHouseDatabaseType implements DatabaseType {
     }
     
     @Override
-    public Optional<DatabaseType> getTrunkDatabaseType() {
-        return Optional.of(TypedSPILoader.getService(DatabaseType.class, "MySQL"));
-    }
-    
-    @Override
     public String getType() {
         return "ClickHouse";
     }

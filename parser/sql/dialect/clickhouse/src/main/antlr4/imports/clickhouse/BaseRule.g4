@@ -80,7 +80,7 @@ unreservedWord
     | POPULATE | PRECEDING | PREWHERE | PRIMARY | RANGE | RELOAD | REMOVE | RENAME | REPLACE | REPLICA | REPLICATED | RIGHT | ROLLUP | ROW
     | ROWS | SAMPLE | SELECT | SEMI | SENDS | SET | SETTINGS | SHOW | SOURCE | START | STOP | SUBSTRING | SYNC | SYNTAX | SYSTEM | TABLE
     | TABLES | TEMPORARY | TEST | THEN | TIES | TIMEOUT | TIMESTAMP | TOTALS | TRAILING | TRIM | TRUNCATE | TO | TOP | TTL | TYPE
-    | UNBOUNDED | UNION | UPDATE | USE | USING | UUID | VALUES | VIEW | VOLUME | WATCH | WHEN | WHERE | WINDOW | WITH
+    | UNBOUNDED | UNION | UPDATE | USE | USING | UUID | VALUES | VIEW | VOLUME | WATCH | WHEN | WHERE | WINDOW | WITH | NAME
     ;
 
 interval
@@ -299,7 +299,7 @@ orderByClause
     ;
 
 orderByItem
-    : (columnName | numberLiterals) (ASC | DESC)?
+    : (columnName | numberLiterals) (ASCENDING | DESCENDING | DESC)? (NULLS (FIRST | LAST))? (COLLATE STRING_)?
     ;
 
 dataType
@@ -349,4 +349,8 @@ collateClause
 
 ignoredIdentifier
     : identifier (DOT_ identifier)?
+    ;
+
+ifNotExists
+    : IF NOT EXISTS
     ;

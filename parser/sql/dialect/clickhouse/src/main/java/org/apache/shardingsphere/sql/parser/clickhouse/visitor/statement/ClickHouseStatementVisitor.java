@@ -47,6 +47,7 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.Aggregat
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ExpressionProjectionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.OrderBySegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.item.ColumnOrderByItemSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.item.ExpressionOrderByItemSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.item.IndexOrderByItemSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.item.OrderByItemSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.DataTypeLengthSegment;
@@ -85,7 +86,7 @@ public abstract class ClickHouseStatementVisitor extends ClickHouseStatementBase
     public final ASTNode visitParameterMarker(final ClickHouseStatementParser.ParameterMarkerContext ctx) {
         return new ParameterMarkerValue(parameterMarkerSegments.size(), ParameterMarkerType.QUESTION);
     }
-    
+
     @Override
     public final ASTNode visitLiterals(final ClickHouseStatementParser.LiteralsContext ctx) {
         if (null != ctx.stringLiterals()) {
@@ -483,7 +484,6 @@ public abstract class ClickHouseStatementVisitor extends ClickHouseStatementBase
             visit(each);
         }
     }
-    
     @Override
     public final ASTNode visitOrderByClause(final ClickHouseStatementParser.OrderByClauseContext ctx) {
         Collection<OrderByItemSegment> items = new LinkedList<>();
@@ -492,7 +492,8 @@ public abstract class ClickHouseStatementVisitor extends ClickHouseStatementBase
         }
         return new OrderBySegment(ctx.getStart().getStartIndex(), ctx.getStop().getStopIndex(), items);
     }
-    
+
+
     @Override
     public final ASTNode visitOrderByItem(final ClickHouseStatementParser.OrderByItemContext ctx) {
         OrderDirection orderDirection = null == ctx.DESC() ? OrderDirection.ASC : OrderDirection.DESC;
@@ -503,7 +504,9 @@ public abstract class ClickHouseStatementVisitor extends ClickHouseStatementBase
         return new IndexOrderByItemSegment(ctx.numberLiterals().getStart().getStartIndex(), ctx.numberLiterals().getStop().getStopIndex(),
                 SQLUtils.getExactlyNumber(ctx.numberLiterals().getText(), 10).intValue(), orderDirection, null);
     }
-    
+
+
+
     @Override
     public final ASTNode visitDataType(final ClickHouseStatementParser.DataTypeContext ctx) {
         DataTypeSegment result = new DataTypeSegment();

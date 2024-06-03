@@ -17,12 +17,13 @@
 
 grammar ClickHouseStatement;
 
-import DMLStatement;
+import DMLStatement,DDLStatement;
 
 execute
     : (select
     | insert
     | update
     | delete
+    | createTable
     ) SEMI_? EOF
     ;

@@ -773,6 +773,10 @@ WITH
     : W I T H
     ;
 
+NAME
+    : N A M E
+    ;
+
 YEAR
     : Y E A R | Y Y Y Y
     ;

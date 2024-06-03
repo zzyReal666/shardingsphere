@@ -20,6 +20,8 @@ package org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.dd
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.table.CreateTableOptionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.order.OrderBySegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.CreateTableStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.ClickHouseStatement;
@@ -31,10 +33,12 @@ import org.apache.shardingsphere.sql.parser.sql.dialect.statement.clickhouse.Cli
 @Getter
 @Setter
 public final class ClickHouseCreateTableStatement extends CreateTableStatement implements ClickHouseStatement {
-    
-    private SimpleTableSegment uuidClause;
-    
-    private SimpleTableSegment clusterClause;
-    
-    private SimpleTableSegment tableSchemaClause;
+
+    private final boolean ifNotExists;
+
+    private SimpleTableSegment likeTable;
+
+    private CreateTableOptionSegment createTableOptionSegment;
+
+    private OrderBySegment orderBy;
 }
