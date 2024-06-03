@@ -351,6 +351,10 @@ ignoredIdentifier
     : identifier (DOT_ identifier)?
     ;
 
+dropBehaviour
+    : (CASCADE | RESTRICT)?
+    ;
+
 ifNotExists
     : IF NOT EXISTS
     ;
