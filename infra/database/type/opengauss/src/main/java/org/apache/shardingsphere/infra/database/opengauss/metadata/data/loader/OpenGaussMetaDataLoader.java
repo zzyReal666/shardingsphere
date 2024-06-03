@@ -172,7 +172,7 @@ public final class OpenGaussMetaDataLoader implements DialectMetaDataLoader {
         // TODO user defined collation which deterministic is false
         boolean caseSensitive = true;
         boolean isNullable = "YES".equals(resultSet.getString("is_nullable"));
-        return new ColumnMetaData(columnName, dataTypeMap.get(dataType), isPrimaryKey, generated, caseSensitive, true, false, isNullable);
+        return new ColumnMetaData(columnName, dataTypeMap.get(dataType), isPrimaryKey, generated, caseSensitive, true, false, false);
     }
     
     private Collection<TableMetaData> createTableMetaDataList(final Multimap<String, IndexMetaData> tableIndexMetaDataMap, final Multimap<String, ColumnMetaData> tableColumnMetaDataMap) {

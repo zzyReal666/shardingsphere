@@ -55,7 +55,16 @@ public final class ClickHouseMetaDataLoader implements DialectMetaDataLoader {
 
     private static final String TABLE_META_DATA_SQL_IN_TABLES = TABLE_META_DATA_NO_ORDER + " AND TABLE_NAME IN (%s)" + ORDER_BY_ORDINAL_POSITION;
 
-    private static final String INDEX_META_DATA_SQL = "SELECT TABLE_NAME, INDEX_NAME, NON_UNIQUE, COLUMN_NAME FROM information_schema.statistics " + "WHERE TABLE_SCHEMA=? and TABLE_NAME IN (%s) ORDER BY NON_UNIQUE, INDEX_NAME, SEQ_IN_INDEX";
+    private static final String INDEX_META_DATA_SQL = "SELECT database           AS table_schema,\n" +
+            "       table              AS table_name,\n" +
+            "       name               AS column_name,\n" +
+            "       type               AS data_type,\n" +
+            "       is_in_partition_key,\n" +
+            "       is_in_sorting_key,\n" +
+            "       is_in_primary_key\n" +
+            "FROM system.columns\n" +
+            "WHERE database = ?\n" +
+            "  and table = ?";
 
     private static final String CONSTRAINT_META_DATA_SQL = "SELECT CONSTRAINT_NAME, TABLE_NAME, REFERENCED_TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE " + "WHERE TABLE_NAME IN (%s) AND REFERENCED_TABLE_SCHEMA IS NOT NULL";
 
@@ -120,8 +129,18 @@ public final class ClickHouseMetaDataLoader implements DialectMetaDataLoader {
         Map<String, Collection<ColumnMetaData>> result = new HashMap<>();
         try (Connection connection = dataSource.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(getTableMetaDataSQL(tables))) {
             Map<String, Integer> dataTypes = new DataTypeLoader().load(connection.getMetaData(), getType());
-            String databaseName = "".equals(connection.getCatalog()) ? GlobalDataSourceRegistry.getInstance().getCachedDatabaseTables().get(tables.iterator().next()) : connection.getCatalog();
+
+            String databaseName;
+            if (connection.getCatalog() != null) {
+                databaseName = connection.getCatalog();
+            } else if (connection.getSchema() != null) {
+                databaseName = connection.getSchema();
+            } else {
+                databaseName = GlobalDataSourceRegistry.getInstance().getCachedDatabaseTables().get(tables.iterator().next());
+            }
+
             preparedStatement.setString(1, databaseName);
+
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
                     String tableName = resultSet.getString("TABLE_NAME");
@@ -139,7 +158,7 @@ public final class ClickHouseMetaDataLoader implements DialectMetaDataLoader {
     private ColumnMetaData loadColumnMetaData(final Map<String, Integer> dataTypeMap, final ResultSet resultSet) throws SQLException {
         String columnName = resultSet.getString("COLUMN_NAME");
         String dataType = resultSet.getString("DATA_TYPE");
-        boolean primaryKey = "PRI".equalsIgnoreCase(resultSet.getString("COLUMN_KEY"));
+        boolean primaryKey = "PRI".equalsIgnoreCase(resultSet.getString("is_in_primary_key"));
         String extra = resultSet.getString("EXTRA");
         boolean generated = "auto_increment".equals(extra);
         String collationName = resultSet.getString("COLLATION_NAME");
@@ -147,7 +166,7 @@ public final class ClickHouseMetaDataLoader implements DialectMetaDataLoader {
         boolean visible = !"INVISIBLE".equalsIgnoreCase(extra);
         boolean unsigned = resultSet.getString("COLUMN_TYPE").toUpperCase().contains("UNSIGNED");
         boolean nullable = "YES".equals(resultSet.getString("IS_NULLABLE"));
-        return new ColumnMetaData(columnName, dataTypeMap.get(dataType), primaryKey, generated, caseSensitive, visible, unsigned, nullable);
+        return new ColumnMetaData(columnName, dataTypeMap.get(dataType), primaryKey, false, caseSensitive, true, false, nullable);
     }
 
     private String getTableMetaDataSQL(final Collection<String> tables) {
