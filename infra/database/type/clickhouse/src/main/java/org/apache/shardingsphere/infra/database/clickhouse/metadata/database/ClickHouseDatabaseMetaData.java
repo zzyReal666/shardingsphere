@@ -38,7 +38,7 @@ public final class ClickHouseDatabaseMetaData implements DialectDatabaseMetaData
 
     @Override
     public QuoteCharacter getQuoteCharacter() {
-        return QuoteCharacter.SINGLE_QUOTE;
+        return QuoteCharacter.BACK_QUOTE;
     }
     
     @Override

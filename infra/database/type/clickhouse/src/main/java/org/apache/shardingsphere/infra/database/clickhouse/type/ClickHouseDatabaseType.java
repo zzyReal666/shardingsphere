@@ -34,7 +34,12 @@ public final class ClickHouseDatabaseType implements DatabaseType {
     public Collection<String> getJdbcUrlPrefixes() {
         return Arrays.asList("jdbc:ch:", "jdbc:clickhouse:");
     }
-    
+
+//    @Override
+//    public Optional<DatabaseType> getTrunkDatabaseType() {
+//        return Optional.of(TypedSPILoader.getService(DatabaseType.class, "MySQL"));
+//    }
+//
     @Override
     public String getType() {
         return "ClickHouse";

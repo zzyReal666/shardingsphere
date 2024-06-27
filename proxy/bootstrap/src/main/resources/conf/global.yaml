@@ -21,26 +21,26 @@
 # 
 ######################################################################################################
 
-#mode:
-#  type: Cluster
-#  repository:
-#    type: ZooKeeper
-#    props:
-#      namespace: governance_ds
-#      server-lists: localhost:2181
-#      retryIntervalMilliseconds: 500
-#      timeToLiveSeconds: 60
-#      maxRetries: 3
-#      operationTimeoutMilliseconds: 500
+mode:
+  type: Cluster
+  repository:
+    type: ZooKeeper
+    props:
+      namespace:
+      server-lists: localhost:12181
+      retryIntervalMilliseconds: 500
+      timeToLiveSeconds: 60
+      maxRetries: 3
+      operationTimeoutMilliseconds: 500
 #
-#authority:
-#  users:
-#    - user: root@%
-#      password: root
-#    - user: sharding
-#      password: sharding
-#  privilege:
-#    type: ALL_PERMITTED
+authority:
+  users:
+    - user: root@%
+      password: root
+    - user: sharding
+      password: sharding
+  privilege:
+    type: ALL_PERMITTED
 #
 #transaction:
 #  defaultType: XA
@@ -54,13 +54,13 @@
 #    initialCapacity: 128
 #    maximumSize: 1024
 #
-#logging:
-#  loggers:
-#  - loggerName: ShardingSphere-SQL
-#    additivity: true
-#    level: INFO
-#    props:
-#      enable: false
+logging:
+  loggers:
+  - loggerName: ShardingSphere-SQL
+    additivity: true
+    level: INFO
+    props:
+      enable: false
 #
 #sqlFederation:
 #  sqlFederationEnabled: false
@@ -68,13 +68,13 @@
 #    initialCapacity: 2000
 #    maximumSize: 65535
 #
-#props:
+props:
 #  system-log-level: INFO
 #  max-connections-size-per-query: 1
 #  kernel-executor-size: 16  # Infinite by default.
 #  proxy-frontend-flush-threshold: 128  # The default value is 128.
 #  # sql-show is the same as props in logger ShardingSphere-SQL, and its priority is lower than logging rule
-#  sql-show: false
+  sql-show: false
 #  check-table-metadata-enabled: false
 #    # Proxy backend query fetch size. A larger value may increase the memory usage of ShardingSphere Proxy.
 #    # The default value is -1, which means set the minimum value for different JDBC drivers.

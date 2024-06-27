@@ -18,3 +18,5 @@
 org.apache.shardingsphere.encrypt.algorithm.standard.AESEncryptAlgorithm
 org.apache.shardingsphere.encrypt.algorithm.assisted.MD5AssistedEncryptAlgorithm
 org.apache.shardingsphere.encrypt.algorithm.sm.SM4EncryptAlgorithm
+org.apache.shardingsphere.encrypt.algorithm.sm.card.SM4PaddingAlg
+org.apache.shardingsphere.encrypt.algorithm.TestAlg
